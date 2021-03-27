@@ -6,14 +6,15 @@
 import * as common from './common';
 import { Team } from './team';
 import { ICorporateLink } from './corporateLink';
-import { CoreCapability, IOperationsInstance, IOperationsLinks, IOperationsProviders, throwIfNotCapable } from '../transitional';
+import {
+  CoreCapability,
+  IOperationsInstance,
+  IOperationsLinks,
+  IOperationsProviders,
+  throwIfNotCapable,
+} from '../transitional';
 
-const memberPrimaryProperties = [
-  'id',
-  'login',
-  'permissions',
-  'avatar_url',
-];
+const memberPrimaryProperties = ['id', 'login', 'permissions', 'avatar_url'];
 const memberSecondaryProperties = [];
 
 export class TeamMember {
@@ -58,7 +59,13 @@ export class TeamMember {
   constructor(team: Team, entity: any, operations: IOperationsInstance) {
     this._team = team;
     if (entity) {
-      common.assignKnownFieldsPrefixed(this, entity, 'member', memberPrimaryProperties, memberSecondaryProperties);
+      common.assignKnownFieldsPrefixed(
+        this,
+        entity,
+        'member',
+        memberPrimaryProperties,
+        memberSecondaryProperties
+      );
     }
     this._operations = operations;
   }
@@ -100,17 +107,26 @@ export class TeamMember {
     if (this._mailAddress) {
       return this._mailAddress;
     }
-    const operations = throwIfNotCapable<IOperationsProviders>(this._operations, CoreCapability.Providers);
+    const operations = throwIfNotCapable<IOperationsProviders>(
+      this._operations,
+      CoreCapability.Providers
+    );
     const providers = operations.providers;
     const link = await this.resolveDirectLink();
     if (!link) {
       return;
     }
     if (!providers.mailAddressProvider) {
-      throw new Error('No mailAddressProvider is available in this application instance');
+      throw new Error(
+        'No mailAddressProvider is available in this application instance'
+      );
     }
     // Preventing a crash when trying to send a mail to an unlinked account
-    const mailAddress = link ? await providers.mailAddressProvider.getAddressFromUpn(link.corporateUsername) : null;
+    const mailAddress = link
+      ? await providers.mailAddressProvider.getAddressFromUpn(
+          link.corporateUsername
+        )
+      : null;
     this._mailAddress = mailAddress;
     return mailAddress;
   }
@@ -122,7 +138,10 @@ export class TeamMember {
     if (this._link) {
       return this._link;
     }
-    const operations = throwIfNotCapable<IOperationsLinks>(this._operations, CoreCapability.Links);
+    const operations = throwIfNotCapable<IOperationsLinks>(
+      this._operations,
+      CoreCapability.Links
+    );
     try {
       this._link = await operations.getLinkByThirdPartyId(this._id.toString());
     } catch (ignoredResolutionError) {

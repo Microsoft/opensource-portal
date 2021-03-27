@@ -43,40 +43,66 @@ function containsNewlinesNotHtml(error) {
   return false;
 }
 
-const exceptionFieldsOfInterest = [
-  'status',
-  'statusCode',
-  'innerMessage',
-];
+const exceptionFieldsOfInterest = ['status', 'statusCode', 'innerMessage'];
 
-export default function SiteErrorHandler (err, req, res, next) {
+export default function SiteErrorHandler(err, req, res, next) {
   // CONSIDER: Let's eventually decouple all of our error message improvements to another area to keep the error handler intact.
   const { applicationProfile, config } = getProviders(req);
   var correlationId = req.correlationId;
-  var errorStatus = err ? (err.status || err.statusCode) : undefined;
+  var errorStatus = err ? err.status || err.statusCode : undefined;
   // Per GitHub: https://developer.github.com/v3/oauth/#bad-verification-code
   // When they offer a code that another GitHub auth server interprets as invalid,
   // the app should retry.
-  if ((err.message === 'The code passed is incorrect or expired.' || (err.message === 'Failed to obtain access token' && err.oauthError.message === 'The code passed is incorrect or expired.')) && req.scrubbedUrl.startsWith('/auth/github/')) {
-    req.insights.trackMetric({ name: 'GitHubInvalidExpiredCodeRedirect', value: 1 });
+  if (
+    (err.message === 'The code passed is incorrect or expired.' ||
+      (err.message === 'Failed to obtain access token' &&
+        err.oauthError.message ===
+          'The code passed is incorrect or expired.')) &&
+    req.scrubbedUrl.startsWith('/auth/github/')
+  ) {
+    req.insights.trackMetric({
+      name: 'GitHubInvalidExpiredCodeRedirect',
+      value: 1,
+    });
     req.insights.trackEvent({ name: 'GitHubInvalidExpiredCodeRetry' });
-    return res.redirect(req.scrubbedUrl === '/auth/github/callback/increased-scope?code=*****' ? '/auth/github/increased-scope' : '/auth/github');
+    return res.redirect(
+      req.scrubbedUrl === '/auth/github/callback/increased-scope?code=*****'
+        ? '/auth/github/increased-scope'
+        : '/auth/github'
+    );
   }
-  const isGitHubAbuseRateLimit = err && err.message && err.message.includes && err.message.includes('#abuse-rate-limits');
+  const isGitHubAbuseRateLimit =
+    err &&
+    err.message &&
+    err.message.includes &&
+    err.message.includes('#abuse-rate-limits');
   if (isGitHubAbuseRateLimit) {
     req.insights.trackMetric({ name: 'GitHubAbuseRateLimit', value: 1 });
   }
-  if (err.message && err.message.includes && err.message.includes('ETIMEDOUT') && (err.message.includes('192.30.253.116') || err.message.includes('192.30.253.117'))) {
+  if (
+    err.message &&
+    err.message.includes &&
+    err.message.includes('ETIMEDOUT') &&
+    (err.message.includes('192.30.253.116') ||
+      err.message.includes('192.30.253.117'))
+  ) {
     req.insights.trackMetric({ name: 'GitHubApiTimeout', value: 1 });
     req.insights.trackEvent({ name: 'GitHubApiTimeout' });
-    err = wrapError(err, 'The GitHub API is temporarily down. Please try again soon.', false);
+    err = wrapError(
+      err,
+      'The GitHub API is temporarily down. Please try again soon.',
+      false
+    );
   }
   var primaryUserInstance = req.user ? req.user.github : null;
   if (config) {
     if (config.authentication.scheme !== 'github') {
       primaryUserInstance = req.user ? req.user.azure : null;
     }
-    var version = config && config.logging && config.logging.version ? config.logging.version : '?';
+    var version =
+      config && config.logging && config.logging.version
+        ? config.logging.version
+        : '?';
     if (config.logging.errors && err.status !== 403 && err.skipLog !== true) {
       let appSource = 'unknown';
       if (process.argv.length > 1) {
@@ -104,7 +130,9 @@ export default function SiteErrorHandler (err, req, res, next) {
             if (err) {
               insightsProperties.stk = err.stack;
             }
-          } catch (stackProblem) { /* ignore */ }
+          } catch (stackProblem) {
+            /* ignore */
+          }
         }
         if (isGitHubAbuseRateLimit) {
           insightsProperties.message = err.message;
@@ -116,14 +144,19 @@ export default function SiteErrorHandler (err, req, res, next) {
           if (err && err['json']) {
             // not tracking jsonErrors for now, they pollute app insights
           } else {
-            req.insights.trackException({ exception: err, properties: insightsProperties });
+            req.insights.trackException({
+              exception: err,
+              properties: insightsProperties,
+            });
           }
         }
       }
     }
   }
   if (err !== undefined && err.skipLog !== true) {
-    console.log('Error: ' + (err && err.message ? err.message : 'Error is undefined.'));
+    console.log(
+      'Error: ' + (err && err.message ? err.message : 'Error is undefined.')
+    );
     if (err.stack) {
       console.error(err.stack);
     }
@@ -136,7 +169,13 @@ export default function SiteErrorHandler (err, req, res, next) {
     }
   }
   // Bubble OAuth errors to the forefront... this is the rate limit scenario.
-  if (err && err.oauthError && err.oauthError.statusCode && err.oauthError.statusCode && err.oauthError.data) {
+  if (
+    err &&
+    err.oauthError &&
+    err.oauthError.statusCode &&
+    err.oauthError.statusCode &&
+    err.oauthError.data
+  ) {
     var detailed = err.message;
     err = err.oauthError;
     err.status = err.statusCode;
@@ -144,13 +183,21 @@ export default function SiteErrorHandler (err, req, res, next) {
     if (data && data.message) {
       err.message = err.statusCode + ': ' + data.message;
     } else {
-      err.message = err.statusCode + ' Unauthorized received. You may have exceeded your GitHub API rate limit or have an invalid auth token at this time.';
+      err.message =
+        err.statusCode +
+        ' Unauthorized received. You may have exceeded your GitHub API rate limit or have an invalid auth token at this time.';
     }
     err.detailed = detailed;
   }
   // Don't leak the Redis connection information.
-  if (err && err.message && err.message.indexOf('Redis connection') >= 0 && err.message.indexOf('ETIMEDOUT')) {
-    err.message = 'The session store was temporarily unavailable. Please try again.';
+  if (
+    err &&
+    err.message &&
+    err.message.indexOf('Redis connection') >= 0 &&
+    err.message.indexOf('ETIMEDOUT')
+  ) {
+    err.message =
+      'The session store was temporarily unavailable. Please try again.';
   }
   if (res.headersSent) {
     console.error('Headers were already sent.');
@@ -165,11 +212,18 @@ export default function SiteErrorHandler (err, req, res, next) {
     message: safeMessage,
     encodedMessage: querystring.escape(safeMessage),
     messageHasNonHtmlNewlines: containsNewlinesNotHtml(err),
-    serviceBanner: config && config.serviceMessage ? config.serviceMessage.banner : undefined,
+    serviceBanner:
+      config && config.serviceMessage
+        ? config.serviceMessage.banner
+        : undefined,
     detailed: err && err.detailed ? redactRootPaths(err.detailed) : undefined,
-    encodedDetailed: err && err.detailed ? querystring.escape(redactRootPaths(err.detailed)) : undefined,
+    encodedDetailed:
+      err && err.detailed
+        ? querystring.escape(redactRootPaths(err.detailed))
+        : undefined,
     errorFancyLink: err && err.fancyLink ? err.fancyLink : undefined,
-    errorFancySecondaryLink: err && err.fancySecondaryLink ? err.fancySecondaryLink : undefined,
+    errorFancySecondaryLink:
+      err && err.fancySecondaryLink ? err.fancySecondaryLink : undefined,
     errorStatus: errorStatus,
     skipLog: err.skipLog,
     skipOops: err && err.skipOops ? err.skipOops : false,
@@ -187,7 +241,11 @@ export default function SiteErrorHandler (err, req, res, next) {
   if (err.status) {
     errStatusAsNumber = parseInt(err.status);
   }
-  let resCode = errStatusAsNumber || (err.status && typeof (err.status) === 'number' ? err.status : false) || err.statusCode || 500;
+  let resCode =
+    errStatusAsNumber ||
+    (err.status && typeof err.status === 'number' ? err.status : false) ||
+    err.statusCode ||
+    500;
   if (err && err.isAxiosError) {
     const axiosError = err as AxiosError;
     if (axiosError?.response?.status) {
@@ -218,11 +276,14 @@ export default function SiteErrorHandler (err, req, res, next) {
     if (!applicationProfile.customErrorHandlerRender) {
       return res.render('error', view);
     }
-    return applicationProfile.customErrorHandlerRender(view, err, req, res, next).then(ok => {
-      // done
-    }).catch(error => {
-      console.error(error);
-      res.end();
-    });
+    return applicationProfile
+      .customErrorHandlerRender(view, err, req, res, next)
+      .then((ok) => {
+        // done
+      })
+      .catch((error) => {
+        console.error(error);
+        res.end();
+      });
   }
-};
+}

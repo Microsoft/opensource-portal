@@ -7,7 +7,12 @@ const debug = require('debug')('pg');
 
 import { InnerError } from '../transitional';
 
-export function PostgresPoolQuerySingleRow(pool, sql: string, values: any[], callback) {
+export function PostgresPoolQuerySingleRow(
+  pool,
+  sql: string,
+  values: any[],
+  callback
+) {
   PostgresPoolQuery(pool, sql, values, (error, results) => {
     if (error) {
       return callback(error);
@@ -22,7 +27,9 @@ export function PostgresPoolQuerySingleRow(pool, sql: string, values: any[], cal
       notFoundError['sqlValues'] = values;
       return callback(notFoundError);
     }
-    const tooManyRows = new Error(`Only one row should be returned; ${len} rows were returned`);
+    const tooManyRows = new Error(
+      `Only one row should be returned; ${len} rows were returned`
+    );
     tooManyRows['status'] = 412;
     tooManyRows['sqlStatement'] = sql;
     tooManyRows['sqlValues'] = values;
@@ -30,7 +37,11 @@ export function PostgresPoolQuerySingleRow(pool, sql: string, values: any[], cal
   });
 }
 
-export function PostgresPoolQuerySingleRowAsync(pool, sql: string, values: any[]): Promise<any> {
+export function PostgresPoolQuerySingleRowAsync(
+  pool,
+  sql: string,
+  values: any[]
+): Promise<any> {
   return new Promise((resolve, reject) => {
     PostgresPoolQuerySingleRow(pool, sql, values, (error, results) => {
       return error ? reject(error) : resolve(results);
@@ -42,7 +53,7 @@ export function PostgresPoolQuery(pool, sql: string, values: any[], callback) {
   if (!pool) {
     throw new Error('No Postgres pool provided');
   }
-  if (!callback && typeof(values) === 'function') {
+  if (!callback && typeof values === 'function') {
     callback = values;
     values = [];
   }
@@ -55,7 +66,10 @@ export function PostgresPoolQuery(pool, sql: string, values: any[], callback) {
     client.query(sql, values, function (queryError, results) {
       release();
       if (queryError) {
-        const err: InnerError = new Error(queryError.message /* Postgres provider never leaks SQL statements thankfully */ || 'There was an error querying a database');
+        const err: InnerError = new Error(
+          queryError.message /* Postgres provider never leaks SQL statements thankfully */ ||
+            'There was an error querying a database'
+        );
         err.inner = queryError;
         if (queryError.position) {
           err['position'] = queryError.position;
@@ -72,7 +86,11 @@ export function PostgresPoolQuery(pool, sql: string, values: any[], callback) {
   });
 }
 
-export function PostgresPoolQueryAsync(pool, sql: string, values: any[]): Promise<any> {
+export function PostgresPoolQueryAsync(
+  pool,
+  sql: string,
+  values: any[]
+): Promise<any> {
   return new Promise((resolve, reject) => {
     PostgresPoolQuery(pool, sql, values, (error, results) => {
       if (results && results['rows'] && results['rows'].length !== undefined) {

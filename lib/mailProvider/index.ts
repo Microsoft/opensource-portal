@@ -58,7 +58,9 @@ function patchOverride(provider, newToAddress, htmlOrNot) {
     }
     const initialContent = mailOptions.content;
     const redirectMessage = `This mail was intended for ${originalTo} but was instead sent to ${newToAddress} per a configuration override.\n`;
-    mailOptions.content = htmlOrNot ? `<p><em>${redirectMessage}</em></p>\n${initialContent}` : `${redirectMessage}\n${initialContent}`;
+    mailOptions.content = htmlOrNot
+      ? `<p><em>${redirectMessage}</em></p>\n${initialContent}`
+      : `${redirectMessage}\n${initialContent}`;
     return sendMail(mailOptions);
   };
   return provider;
@@ -92,11 +94,17 @@ export function createMailProviderInstance(config): IMailProvider {
       break;
     }
     default: {
-      throw new Error(`The mail provider "${mailConfig.provider}" is not implemented or configured at this time.`);
+      throw new Error(
+        `The mail provider "${mailConfig.provider}" is not implemented or configured at this time.`
+      );
     }
   }
   if (mailConfig.overrideRecipient) {
-    patchOverride(mailProvider, mailConfig.overrideRecipient, mailProvider.html);
+    patchOverride(
+      mailProvider,
+      mailConfig.overrideRecipient,
+      mailProvider.html
+    );
   }
   return mailProvider;
 }

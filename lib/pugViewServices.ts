@@ -23,7 +23,7 @@ export default {
   moment,
   octicon: function (name, optionalWidth, classes, optionalAria) {
     const icon = octicons[name];
-    if (!icon || typeof (icon.toSVG) !== 'function') {
+    if (!icon || typeof icon.toSVG !== 'function') {
       throw new Error(`Missing octicon ${name}`);
     }
     const options: {
@@ -43,6 +43,6 @@ export default {
     return icon.toSVG(options);
   },
   stripJsSingleQuote: function (value) {
-    return value.replace(/\\/g, '').replace(/\'/g, '\\\'');
+    return value.replace(/\\/g, '').replace(/\'/g, "\\'");
   },
 };

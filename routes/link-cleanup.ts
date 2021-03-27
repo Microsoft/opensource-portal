@@ -29,36 +29,36 @@ router.use((req: ReposAppRequest, res, next) => {
   // 2. IF they are a special user type allowing multiple accounts, see if they
   //    want to onboard or swap their session to another account.
 
-    // req.linksForCleanup = userLinks;
-    // if (userLinks.length === 1 && req.user && req.user.github && req.user.github.id !== userLinks[0].ghid) {
-    //   if (req.body.unlink && req.body.confirm) {
-    //     return unlink(req, userLinks[0], (unlinkError) => {
-    //       if (unlinkError) {
-    //         next(unlinkError);
-    //       } else {
-    //         res.redirect('/');
-    //       }
-    //     });
-    //   }
-    //   if (req.body.link && req.session.enableMultipleAccounts === true) {
-    //     return link(req, req.body.link, (linkError, linkObject) => {
-    //       if (linkError) {
-    //         next(linkError);
-    //       } else {
-    //         req.session.selectedGithubId = linkObject.ghid;
-    //         res.redirect('/?onboarding=yes');
-    //       }
-    //     });
-    //   }
-    //   return renderChangeAccountPage(req, res, userLinks[0]);
-    // }
-    // if (userLinks.length < 2) {
-    //   return res.redirect('/');
-    // }
-    // // CONSIDER: Make GitHub user calls to see if these users still exist.
-    // // EDGE: user renamed their GitHub account... so we may not have their latest GitHub ID, but
-    // // it would not create a duplicate link since the GHID fields would be the same.
-    // next();
+  // req.linksForCleanup = userLinks;
+  // if (userLinks.length === 1 && req.user && req.user.github && req.user.github.id !== userLinks[0].ghid) {
+  //   if (req.body.unlink && req.body.confirm) {
+  //     return unlink(req, userLinks[0], (unlinkError) => {
+  //       if (unlinkError) {
+  //         next(unlinkError);
+  //       } else {
+  //         res.redirect('/');
+  //       }
+  //     });
+  //   }
+  //   if (req.body.link && req.session.enableMultipleAccounts === true) {
+  //     return link(req, req.body.link, (linkError, linkObject) => {
+  //       if (linkError) {
+  //         next(linkError);
+  //       } else {
+  //         req.session.selectedGithubId = linkObject.ghid;
+  //         res.redirect('/?onboarding=yes');
+  //       }
+  //     });
+  //   }
+  //   return renderChangeAccountPage(req, res, userLinks[0]);
+  // }
+  // if (userLinks.length < 2) {
+  //   return res.redirect('/');
+  // }
+  // // CONSIDER: Make GitHub user calls to see if these users still exist.
+  // // EDGE: user renamed their GitHub account... so we may not have their latest GitHub ID, but
+  // // it would not create a duplicate link since the GHID fields would be the same.
+  // next();
   // });
 });
 

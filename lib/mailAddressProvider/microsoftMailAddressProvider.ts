@@ -13,11 +13,13 @@ export default function createMailAddressProvider(options) {
   }
   const providers = options.providers as IProviders;
   if (!providers) {
-    throw new Error('The microsoftMailAddressProvider requires that all provider instances are passed in as options');
+    throw new Error(
+      'The microsoftMailAddressProvider requires that all provider instances are passed in as options'
+    );
   }
   return {
     getAddressFromUpn: (upn: string) => {
       return providers.graphProvider.getMailAddressByUsername(upn);
     },
   } as IMailAddressProvider;
-};
+}

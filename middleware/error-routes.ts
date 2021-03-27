@@ -9,7 +9,10 @@ import { IReposError } from '../transitional';
 import { IReposApplication } from '../app';
 import RouteErrorHandler from './errorHandler';
 
-export default async function configureErrorRoutes(app: IReposApplication, initializationError: Error) {
+export default async function configureErrorRoutes(
+  app: IReposApplication,
+  initializationError: Error
+) {
   if (initializationError) {
     console.warn('Initialization Error Present: All app requests will fail!');
 
@@ -33,4 +36,4 @@ export default async function configureErrorRoutes(app: IReposApplication, initi
   });
 
   app.use(RouteErrorHandler);
-};
+}

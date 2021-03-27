@@ -83,11 +83,13 @@ export default class BlobCache implements ICacheHelper {
     const sharedKeyCredential = new StorageSharedKeyCredential(account, key);
     this._client = new BlobServiceClient(
       `https://${account}.blob.core.windows.net`,
-      sharedKeyCredential,
+      sharedKeyCredential
     );
     try {
-      this._container = this._client.getContainerClient(this._options.container);
-      if (!await this._container.exists()) {
+      this._container = this._client.getContainerClient(
+        this._options.container
+      );
+      if (!(await this._container.exists())) {
         await this._client.createContainer(this._options.container);
       }
     } catch (containerError) {
@@ -117,7 +119,9 @@ export default class BlobCache implements ICacheHelper {
       if (metadata && metadata[compressedAttributeName] === compressedGzip) {
         value = await gunzipBuffer(buffer);
       } else if (metadata && metadata[compressedAttributeName]) {
-        throw new Error(`Unsupported compression type: ${metadata[compressedAttributeName]}`);
+        throw new Error(
+          `Unsupported compression type: ${metadata[compressedAttributeName]}`
+        );
       } else {
         value = buffer.toString('utf8');
       }
@@ -156,24 +160,42 @@ export default class BlobCache implements ICacheHelper {
     const blockBlobClient = this._container.getBlockBlobClient(blobName);
     const uploadStarted = new Date();
     let metadata = {};
-    let contentType = ext === '.json' ? 'application/json' : (ext === '.txt' ? 'text/plain' : 'application/octet-stream');
+    let contentType =
+      ext === '.json'
+        ? 'application/json'
+        : ext === '.txt'
+        ? 'text/plain'
+        : 'application/octet-stream';
     const blobHTTPHeaders = { blobContentType: contentType };
     if (options.minutesToExpire) {
-      const expires = new Date(uploadStarted.getTime() + (1000 * 60 * options.minutesToExpire));
+      const expires = new Date(
+        uploadStarted.getTime() + 1000 * 60 * options.minutesToExpire
+      );
       const iso8601 = expires.toISOString();
-      debug(`blob will expire in ${options.minutesToExpire}m; expires=${iso8601}, blob=${blobName}, key=${key}`);
+      debug(
+        `blob will expire in ${options.minutesToExpire}m; expires=${iso8601}, blob=${blobName}, key=${key}`
+      );
       metadata[ttlAttributeName] = iso8601;
     }
     let response: BlockBlobUploadResponse = null;
     if (ext.endsWith('.gz') && !options.compress) {
-      console.warn(`Warning, extension ${ext} for blobName ${blobName} appears compressed but options have not set the value to be compressed`);
+      console.warn(
+        `Warning, extension ${ext} for blobName ${blobName} appears compressed but options have not set the value to be compressed`
+      );
     }
     if (options.compress) {
       const compressed = await gzipString(value);
       metadata[compressedAttributeName] = compressedGzip;
-      response = await blockBlobClient.upload(compressed, compressed.byteLength, { blobHTTPHeaders, metadata });
+      response = await blockBlobClient.upload(
+        compressed,
+        compressed.byteLength,
+        { blobHTTPHeaders, metadata }
+      );
     } else {
-      response = await blockBlobClient.upload(value, Buffer.byteLength(value), { blobHTTPHeaders, metadata });
+      response = await blockBlobClient.upload(value, Buffer.byteLength(value), {
+        blobHTTPHeaders,
+        metadata,
+      });
     }
   }
 
@@ -182,56 +204,80 @@ export default class BlobCache implements ICacheHelper {
     return this.set(key, asJsonText, { extension: '.json' });
   }
 
-  setObjectWithExpire(key: string, object: any, minutesToExpire: number): Promise<void> {
+  setObjectWithExpire(
+    key: string,
+    object: any,
+    minutesToExpire: number
+  ): Promise<void> {
     if (object.ttl) {
-      console.warn('The object should not have an existing \'ttl\' property before caching.');
+      console.warn(
+        "The object should not have an existing 'ttl' property before caching."
+      );
     }
     const asJsonText = JSON.stringify(object);
     return this.set(key, asJsonText, { minutesToExpire, extension: '.json' });
   }
 
-  setObjectCompressedWithExpire(key: string, object: any, minutesToExpire: number): Promise<void> {
-    const asJsonText = object.valueOnly === true ? object.value : JSON.stringify(object);
+  setObjectCompressedWithExpire(
+    key: string,
+    object: any,
+    minutesToExpire: number
+  ): Promise<void> {
+    const asJsonText =
+      object.valueOnly === true ? object.value : JSON.stringify(object);
     const extension = object.valueOnly === true ? '.txt.gz' : '.json.gz';
-    return this.set(key, asJsonText, { minutesToExpire, extension, compress: true });
+    return this.set(key, asJsonText, {
+      minutesToExpire,
+      extension,
+      compress: true,
+    });
   }
 
   setCompressed(key: string, value: string): Promise<void> {
     return this.set(key, value, { extension: '.txt.gz', compress: true });
   }
 
-  setCompressedWithExpire(key: string, value: string, minutesToExpire: number): Promise<void> {
-    return this.setObjectCompressedWithExpire(key, {
-      value,
-      valueOnly: true,
-    }, minutesToExpire);
+  setCompressedWithExpire(
+    key: string,
+    value: string,
+    minutesToExpire: number
+  ): Promise<void> {
+    return this.setObjectCompressedWithExpire(
+      key,
+      {
+        value,
+        valueOnly: true,
+      },
+      minutesToExpire
+    );
   }
 
-  setWithExpire(key: string, value: string, minutesToExpire: number): Promise<void> {
+  setWithExpire(
+    key: string,
+    value: string,
+    minutesToExpire: number
+  ): Promise<void> {
     return this.setCompressedWithExpire(key, value, minutesToExpire);
   }
 
   async expire(key: string, minutesToExpire: number): Promise<void> {
     this.throwIfNotInitialized();
-    const candidateExtensions = [
-      '.txt',
-      '.txt.gz',
-      '.json',
-      '.json.gz',
-    ];
+    const candidateExtensions = ['.txt', '.txt.gz', '.json', '.json.gz'];
     const now = new Date();
     while (candidateExtensions.length) {
       const extension = candidateExtensions.pop();
       let metadata = null;
       let blobClient: BlobClient = null;
       try {
-        blobClient = this._container.getBlobClient(this.getBlobName(key, extension));
+        blobClient = this._container.getBlobClient(
+          this.getBlobName(key, extension)
+        );
         const resp = (await blobClient.getProperties()) || {};
         metadata = resp['metadata'];
       } catch (notFoundError) {
         continue;
       }
-      const expires = new Date(now.getTime() + (1000 * 60 * minutesToExpire));
+      const expires = new Date(now.getTime() + 1000 * 60 * minutesToExpire);
       const iso8601 = expires.toISOString();
       metadata[ttlAttributeName] = iso8601;
       await blobClient.setMetadata(metadata);
@@ -240,27 +286,23 @@ export default class BlobCache implements ICacheHelper {
   }
 
   async delete(key: string): Promise<void> {
-    const candidateExtensions = [
-      '.txt',
-      '.txt.gz',
-      '.json',
-      '.json.gz',
-    ];
+    const candidateExtensions = ['.txt', '.txt.gz', '.json', '.json.gz'];
     while (candidateExtensions.length) {
       const extension = candidateExtensions.pop();
       try {
-        const blobClient = this._container.getBlobClient(this.getBlobName(key, extension));
+        const blobClient = this._container.getBlobClient(
+          this.getBlobName(key, extension)
+        );
         await blobClient.delete();
         return;
-      } catch (ignoredError) {
-      }
+      } catch (ignoredError) {}
     }
   }
 
   async deleteExpiredBlobs(): Promise<IExpiredBlobsStats> {
-    let iterator = this._container.
-      listBlobsFlat({ includeMetadata: true }).
-      byPage({ maxPageSize: 100 /* 25 */ });
+    let iterator = this._container
+      .listBlobsFlat({ includeMetadata: true })
+      .byPage({ maxPageSize: 100 /* 25 */ });
     let response = await iterator.next();
     const stats: IExpiredBlobsStats = {
       processedBlobs: 0,
@@ -275,7 +317,11 @@ export default class BlobCache implements ICacheHelper {
         const blob = b as BlobItem;
         try {
           if (!blob.metadata || !blob.metadata.expires) {
-            debug(`${++x}. FYI: blob ${blob.name} does not have an expiration to review and was skipped`);
+            debug(
+              `${++x}. FYI: blob ${
+                blob.name
+              } does not have an expiration to review and was skipped`
+            );
             ++stats.processedBlobs;
             continue;
           }
@@ -293,7 +339,9 @@ export default class BlobCache implements ICacheHelper {
           stats.errors.push(processBlobError);
         }
         ++stats.processedBlobs;
-        debug(`processed=${stats.processedBlobs}, pages=${stats.processedPages}, expired=${stats.expired}`);
+        debug(
+          `processed=${stats.processedBlobs}, pages=${stats.processedPages}, expired=${stats.expired}`
+        );
       }
       ++stats.processedPages;
       response = await iterator.next();
@@ -303,7 +351,9 @@ export default class BlobCache implements ICacheHelper {
 
   private throwIfNotInitialized() {
     if (!this._initialized) {
-      throw new Error('This provider must be initialized before it can be used');
+      throw new Error(
+        'This provider must be initialized before it can be used'
+      );
     }
   }
 }

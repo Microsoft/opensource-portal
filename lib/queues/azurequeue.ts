@@ -3,7 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { QueueServiceClient, QueueClient, DequeuedMessageItem } from '@azure/storage-queue';
+import {
+  QueueServiceClient,
+  QueueClient,
+  DequeuedMessageItem,
+} from '@azure/storage-queue';
 
 import { IQueueMessage, IQueueProcessor } from '.';
 import { Json, IDictionary } from '../../transitional';
@@ -18,9 +22,11 @@ export class AzureQueuesMessage implements IQueueMessage {
   constructor(message: DequeuedMessageItem) {
     this.popReceipt = message.popReceipt;
     this.identifier = message.messageId;
-    this.unparsedBody = (new Buffer(message.messageText, 'base64')).toString('utf8');
+    this.unparsedBody = new Buffer(message.messageText, 'base64').toString(
+      'utf8'
+    );
     const parsed = JSON.parse(this.unparsedBody);
-    if (parsed && parsed.body && typeof(parsed.body === 'string')) {
+    if (parsed && parsed.body && typeof (parsed.body === 'string')) {
       // our own envelope format designed to work well with Azure Logic Apps
       this.unparsedBody = parsed.body;
       delete parsed.body;
@@ -59,10 +65,12 @@ export default class AzureQueuesProcessor implements IQueueProcessor {
     }
     this.#options = options;
   }
-  
+
   async initialize(): Promise<void> {
     const { account, sas, queue } = this.#options;
-    const client = new QueueServiceClient(`https://${account}.queue.core.windows.net${sas}`);
+    const client = new QueueServiceClient(
+      `https://${account}.queue.core.windows.net${sas}`
+    );
     this.#queueClient = client.getQueueClient(queue);
     this.#initialized = true;
   }
@@ -71,7 +79,9 @@ export default class AzureQueuesProcessor implements IQueueProcessor {
     this.requireInitialized();
     const response = await this.#queueClient.receiveMessages();
     if (response.receivedMessageItems.length > 0) {
-      return response.receivedMessageItems.map(message => new AzureQueuesMessage(message));
+      return response.receivedMessageItems.map(
+        (message) => new AzureQueuesMessage(message)
+      );
     }
     return [];
   }
@@ -80,11 +90,13 @@ export default class AzureQueuesProcessor implements IQueueProcessor {
     this.requireInitialized();
     const assumedType = message as AzureQueuesMessage;
     if (!assumedType.popReceipt) {
-      throw new Error('Message must be of type AzureQueuesMessage and have a property popReceipt.');
+      throw new Error(
+        'Message must be of type AzureQueuesMessage and have a property popReceipt.'
+      );
     }
     const deleteMessageResponse = await this.#queueClient.deleteMessage(
       assumedType.identifier,
-      assumedType.popReceipt,
+      assumedType.popReceipt
     );
     // console.log(deleteMessageResponse);
   }

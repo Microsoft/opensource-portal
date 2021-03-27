@@ -27,14 +27,13 @@ function createMailConfig() {
         url: 'url',
         apiKey: 'key',
         version: 'prototype',
-      }
+      },
     },
   };
 }
 
 describe('mailProvider', () => {
   describe('factory', () => {
-
     it('can create a factory by configuration', () => {
       const config = createMailConfig();
       const provider = createMailProviderInstance(config);
@@ -54,7 +53,11 @@ describe('mailProvider', () => {
       assert.strictEqual(messages.length, 1, 'one message was sent');
       const message = messages[0];
       assert.equal(message.id, receipt, 'message ID matches');
-      assert.equal(message.to, developer, 'overridden e-mail address is used for TO:');
+      assert.equal(
+        message.to,
+        developer,
+        'overridden e-mail address is used for TO:'
+      );
     });
 
     it('mock send mail works', async () => {
@@ -69,13 +72,20 @@ describe('mailProvider', () => {
       assert.strictEqual(messages.length, 1, 'one message was sent');
       const message = messages[0];
       assert.equal(message.id, receipt, 'message ID matches');
-      assert.equal(message.to, executive, 'intended receipient was sent the message');
+      assert.equal(
+        message.to,
+        executive,
+        'intended receipient was sent the message'
+      );
     });
 
     it('reports basic provider info and version properties', () => {
       const config = createMailConfig();
       const provider = createMailProviderInstance(config);
-      assert.isTrue(provider.info.includes(fakeMailProviderName), 'provider self-registers correctly');
+      assert.isTrue(
+        provider.info.includes(fakeMailProviderName),
+        'provider self-registers correctly'
+      );
     });
 
     it('throws an error when the provider is not supported', () => {

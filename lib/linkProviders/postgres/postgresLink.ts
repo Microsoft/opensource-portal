@@ -11,9 +11,9 @@ export interface IInternalPostgresLinkOptions {
 }
 
 export interface IPostgresLinkInstanceDataHelpers {
-  delete: () => Promise<boolean>,
-  update: () => Promise<boolean>,
-  save: () => Promise<boolean>,
+  delete: () => Promise<boolean>;
+  update: () => Promise<boolean>;
+  save: () => Promise<boolean>;
 }
 
 export interface IPostgresLinkInstanceInternalHelpers {
@@ -49,7 +49,7 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set created(value: Date) {
-    throw new Error('The \'created\' field cannot be set or updated');
+    throw new Error("The 'created' field cannot be set or updated");
   }
 
   get corporateId(): string {
@@ -65,7 +65,11 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set corporateUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateUsername,
+      value
+    );
   }
 
   get corporateDisplayName() {
@@ -73,7 +77,11 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set corporateDisplayName(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateDisplayName, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateDisplayName,
+      value
+    );
   }
 
   get corporateMailAddress() {
@@ -81,7 +89,11 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set corporateMailAddress(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateMailAddress, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateMailAddress,
+      value
+    );
   }
 
   get corporateAlias() {
@@ -97,7 +109,11 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set thirdPartyUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.thirdPartyUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.thirdPartyUsername,
+      value
+    );
   }
 
   get thirdPartyId(): string {
@@ -129,7 +145,11 @@ export class CorporateLinkPostgres implements ICorporateLink {
   }
 
   set serviceAccountMail(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.serviceAccountMail, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.serviceAccountMail,
+      value
+    );
   }
 
   dataStore(): IPostgresLinkInstanceDataHelpers {
@@ -156,7 +176,9 @@ function _updateColumn(self, columnName, newValue): void {
     if (self._entity[columnName] !== self._originalEntity[columnName]) {
       self._entity[columnName] = self._originalEntity[columnName];
       delete self._columnUpdates[columnName];
-      console.log(`${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`);
+      console.log(
+        `${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`
+      );
     }
   }
 }
@@ -185,13 +207,16 @@ function getDirtyColumns(self) {
   return self._columnUpdates;
 }
 
-function createDataHelpers(link: CorporateLinkPostgres, provider: PostgresLinkProvider): IPostgresLinkInstanceDataHelpers {
+function createDataHelpers(
+  link: CorporateLinkPostgres,
+  provider: PostgresLinkProvider
+): IPostgresLinkInstanceDataHelpers {
   return {
-    update: async () : Promise<boolean> => {
+    update: async (): Promise<boolean> => {
       return provider.updateLink(link);
     },
 
-    save: async () : Promise<boolean> => {
+    save: async (): Promise<boolean> => {
       let actualUpdate = null;
       try {
         actualUpdate = provider.updateLink(link);
@@ -208,7 +233,7 @@ function createDataHelpers(link: CorporateLinkPostgres, provider: PostgresLinkPr
       return actualUpdate;
     },
 
-    delete: async () : Promise<boolean> => {
+    delete: async (): Promise<boolean> => {
       await provider.deleteLink(link);
       return true;
     },

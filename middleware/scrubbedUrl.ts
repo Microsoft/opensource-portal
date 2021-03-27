@@ -7,10 +7,7 @@
 // secrets.
 export default function (req, res, next) {
   var url = req.originalUrl || req.url;
-  var secretKeys = [
-    'code',
-    'token',
-  ];
+  var secretKeys = ['code', 'token'];
   for (var i = 0; i < secretKeys.length; i++) {
     var key = secretKeys[i];
     var value = req.query[key];
@@ -20,4 +17,4 @@ export default function (req, res, next) {
   }
   req.scrubbedUrl = url;
   next();
-};
+}

@@ -9,15 +9,26 @@ import { IndividualContext } from '../../user';
 import { ReposAppRequest, IReposError, getProviders } from '../../transitional';
 import { wrapError } from '../../utils';
 
-export function RequireLinkMatchesGitHubSessionExceptPrefixedRoute(prefix: string) {
+export function RequireLinkMatchesGitHubSessionExceptPrefixedRoute(
+  prefix: string
+) {
   return requireLinkMatchesGitHubSession.bind(null, prefix);
 }
 
-export function RequireLinkMatchesGitHubSession(req: ReposAppRequest, res, next) {
+export function RequireLinkMatchesGitHubSession(
+  req: ReposAppRequest,
+  res,
+  next
+) {
   return requireLinkMatchesGitHubSession(null, req, res, next);
 }
 
-function requireLinkMatchesGitHubSession(allowedPrefix: string, req: ReposAppRequest, res, next) {
+function requireLinkMatchesGitHubSession(
+  allowedPrefix: string,
+  req: ReposAppRequest,
+  res,
+  next
+) {
   // trying to be equivalent to legacy code in ./usernameConsistency (lightweight)
   const context = req.individualContext;
   if (!context) {
@@ -27,15 +38,20 @@ function requireLinkMatchesGitHubSession(allowedPrefix: string, req: ReposAppReq
     return next();
   }
   const gitHubIdentity = context.getGitHubIdentity();
-  const sessionIdentity = context.getSessionBasedGitHubIdentity() || gitHubIdentity;
+  const sessionIdentity =
+    context.getSessionBasedGitHubIdentity() || gitHubIdentity;
   if (gitHubIdentity && gitHubIdentity.id === sessionIdentity.id) {
     return next();
   }
   if (allowedPrefix && req.path.startsWith(allowedPrefix)) {
-    console.log(`Mixed GitHub identity issue. Allowed prefix ${allowedPrefix} matches for ${req.path}, allowing downstream route`);
+    console.log(
+      `Mixed GitHub identity issue. Allowed prefix ${allowedPrefix} matches for ${req.path}, allowing downstream route`
+    );
     return next();
   }
-  let securityError: IReposError = new Error(`Your GitHub account identity has changed.`);
+  let securityError: IReposError = new Error(
+    `Your GitHub account identity has changed.`
+  );
   securityError.detailed = `When you linked your GitHub account to your corporate identity, you used the GitHub account with the username ${gitHubIdentity.username} (GitHub user ID ${gitHubIdentity.id}), but you are currently signed into GitHub with the username of ${sessionIdentity.username} (GitHub user ID ${sessionIdentity.id}). Please sign out of this site and GitHub and try again.`;
   securityError.fancyLink = {
     title: 'Unlink my account',
@@ -48,9 +64,16 @@ function requireLinkMatchesGitHubSession(allowedPrefix: string, req: ReposAppReq
   securityError.skipOops = true;
 
   // TODO_LOW: support multi-account again, if necessary
-  const multipleAccountsEnabled = sessionIdentity.id && context.webContext['_fake*property_session_enableMultipleAccounts'] === true;
+  const multipleAccountsEnabled =
+    sessionIdentity.id &&
+    context.webContext['_fake*property_session_enableMultipleAccounts'] ===
+      true;
   if (multipleAccountsEnabled) {
-    securityError = wrapError(null, 'You are currently signed in to an account on GitHub.com that is different than the one you have selected for your session. Please sign out of GitHub and head back.', true);
+    securityError = wrapError(
+      null,
+      'You are currently signed in to an account on GitHub.com that is different than the one you have selected for your session. Please sign out of GitHub and head back.',
+      true
+    );
     securityError.fancyLink = {
       title: 'Sign out of GitHub',
       link: '/signout/github?redirect=github',
@@ -60,8 +83,11 @@ function requireLinkMatchesGitHubSession(allowedPrefix: string, req: ReposAppReq
 }
 
 export async function AddLinkToRequest(req, res, next) {
-  const activeContext = (req.individualContext || req.apiContext) as IndividualContext;
-  const contextName = req.individualContext ? 'Individual User Context' : 'API Context';
+  const activeContext = (req.individualContext ||
+    req.apiContext) as IndividualContext;
+  const contextName = req.individualContext
+    ? 'Individual User Context'
+    : 'API Context';
   if (!activeContext) {
     return next(new Error('The middleware requires a context'));
   }

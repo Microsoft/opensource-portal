@@ -24,9 +24,14 @@ interface ISafeUserView {
 }
 
 router.get('/', (req: IRequestWithSession, res) => {
-  const { config } = getProviders(req as any as ReposAppRequest);
-  const sessionPrefix = req['sessionStore'] && req['sessionStore'].prefix ? req['sessionStore'].prefix + ':' : null;
-  const sessionIndex = sessionPrefix ? `${sessionPrefix}${req.session.id}` : req.session.id;
+  const { config } = getProviders((req as any) as ReposAppRequest);
+  const sessionPrefix =
+    req['sessionStore'] && req['sessionStore'].prefix
+      ? req['sessionStore'].prefix + ':'
+      : null;
+  const sessionIndex = sessionPrefix
+    ? `${sessionPrefix}${req.session.id}`
+    : req.session.id;
   let safeUserView: ISafeUserView = {
     cookies: req.cookies,
     sessionId: req.session.id,
@@ -44,9 +49,15 @@ router.get('/', (req: IRequestWithSession, res) => {
     }
     safeUserView.user.github = github;
   }
-  if ((req.user && req.user.githubIncreasedScope) || (req.user && req.user.github && req.user.github['scope'] === 'githubapp')) {
+  if (
+    (req.user && req.user.githubIncreasedScope) ||
+    (req.user && req.user.github && req.user.github['scope'] === 'githubapp')
+  ) {
     let githubIncreasedScope = {};
-    const source = req.user.github && req.user.github['scope'] === 'githubapp' ? req.user.github : req.user.githubIncreasedScope;
+    const source =
+      req.user.github && req.user.github['scope'] === 'githubapp'
+        ? req.user.github
+        : req.user.githubIncreasedScope;
     for (let key in source) {
       let val = source[key];
       if (key === 'accessToken') {
@@ -80,8 +91,11 @@ router.get('/', (req: IRequestWithSession, res) => {
     user: req.user,
     config: config,
     corporateLinks: config.corporate.trainingResources['public-homepage'],
-    serviceBanner: config && config.serviceMessage ? config.serviceMessage.banner : undefined,
-    title: 'Open Source Portal for GitHub - ' + config.brand.companyName
+    serviceBanner:
+      config && config.serviceMessage
+        ? config.serviceMessage.banner
+        : undefined,
+    title: 'Open Source Portal for GitHub - ' + config.brand.companyName,
   });
 });
 

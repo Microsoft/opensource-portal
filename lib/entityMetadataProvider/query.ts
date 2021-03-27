@@ -3,8 +3,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { IEntityMetadataProvider } from "./entityMetadataProvider";
-import { EntityMetadataType, EntityMetadataBase } from "./entityMetadata";
+import { IEntityMetadataProvider } from './entityMetadataProvider';
+import { EntityMetadataType, EntityMetadataBase } from './entityMetadata';
 
 export enum FixedQueryType {
   // Team join
@@ -108,7 +108,11 @@ export interface IEntityMetadataFixedQuery {
 export abstract class QueryBase<T> implements IEntityMetadataFixedQuery {
   fixedQueryType = FixedQueryType.Shim;
 
-  public async discover(provider: EntityMetadataBase, entities: IEntityMetadataProvider, thisProviderType: EntityMetadataType): Promise<T[]> {
+  public async discover(
+    provider: EntityMetadataBase,
+    entities: IEntityMetadataProvider,
+    thisProviderType: EntityMetadataType
+  ): Promise<T[]> {
     const metadatas = await entities.fixedQueryMetadata(thisProviderType, this);
     const deserializeArray = provider['deserializeArray']; // using as an internal call
     if (!deserializeArray) {
@@ -119,7 +123,11 @@ export abstract class QueryBase<T> implements IEntityMetadataFixedQuery {
     return results as T[];
   }
 
-  public async generic(provider: EntityMetadataBase, entities: IEntityMetadataProvider, thisProviderType: EntityMetadataType): Promise<any[]> {
+  public async generic(
+    provider: EntityMetadataBase,
+    entities: IEntityMetadataProvider,
+    thisProviderType: EntityMetadataType
+  ): Promise<any[]> {
     const metadatas = await entities.fixedQueryMetadata(thisProviderType, this);
     return metadatas as any[];
   }

@@ -10,11 +10,11 @@ const defaultPageSize = 30;
 
 type Response = {
   json: (obj: any) => void;
-}
+};
 
 type Request = {
   query: any;
-}
+};
 
 export default class JsonPager<T> {
   pageSize: number;
@@ -32,7 +32,9 @@ export default class JsonPager<T> {
   constructor(req: Request, res: Response) {
     this.res = res;
     const { query } = req;
-    const requestedPageSize = query.pageSize ? Number(query.pageSize) : defaultPageSize;
+    const requestedPageSize = query.pageSize
+      ? Number(query.pageSize)
+      : defaultPageSize;
     const requestedPage = query.page ? Number(query.page) : 0;
     this.pageSize = Math.min(requestedPageSize, maxPageSize);
     const page = requestedPage || 1;
@@ -46,7 +48,7 @@ export default class JsonPager<T> {
     this.total = array.length;
     this.lastPage = Math.ceil(this.total / this.pageSize);
     // TODO: this can go past the end, i.e. search while on page 7, it will not return page 1 results
-    this.begin = ((this.page - 1) * this.pageSize);
+    this.begin = (this.page - 1) * this.pageSize;
     this.end = this.begin + this.pageSize;
     const subset = array.slice(this.begin, this.end);
     this.subsetReturnSize = subset.length;
@@ -55,7 +57,9 @@ export default class JsonPager<T> {
 
   sendJson(mappedValues: any[]) {
     if (mappedValues && mappedValues.length !== this.subsetReturnSize) {
-      console.warn(`The mapped values length ${mappedValues.length} !== ${this.subsetReturnSize} that was computed`);
+      console.warn(
+        `The mapped values length ${mappedValues.length} !== ${this.subsetReturnSize} that was computed`
+      );
     }
     return this.res.json({
       values: mappedValues,

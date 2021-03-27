@@ -5,6 +5,4 @@
 
 import sslify from 'express-sslify';
 
-export default sslify.HTTPS(
-  { trustAzureHeader: true }
-);
+export default sslify.HTTPS({ trustAzureHeader: true });

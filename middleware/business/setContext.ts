@@ -3,7 +3,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { IndividualContext, IIndividualContextOptions, IWebContextOptions, WebContext, SessionUserProperties, WebApiContext } from '../../user';
+import {
+  IndividualContext,
+  IIndividualContextOptions,
+  IWebContextOptions,
+  WebContext,
+  SessionUserProperties,
+  WebApiContext,
+} from '../../user';
 import { getProviders } from '../../transitional';
 
 export function webContextMiddleware(req, res, next) {
@@ -14,7 +21,9 @@ export function webContextMiddleware(req, res, next) {
     return next(new Error(msg));
   }
   if (req.individualContext) {
-    console.warn('DUPLICATE EFFORT: middleware has already created the individual context');
+    console.warn(
+      'DUPLICATE EFFORT: middleware has already created the individual context'
+    );
     return next();
   }
   const webContextOptions: IWebContextOptions = {
@@ -26,7 +35,7 @@ export function webContextMiddleware(req, res, next) {
     sessionUserProperties: new SessionUserProperties(req.user),
   };
   const webContext = new WebContext(webContextOptions);
-  const options : IIndividualContextOptions = {
+  const options: IIndividualContextOptions = {
     corporateIdentity: null,
     link: null,
     insights,
@@ -37,7 +46,7 @@ export function webContextMiddleware(req, res, next) {
   const individualContext = new IndividualContext(options);
   req.individualContext = individualContext;
   return next();
-};
+}
 
 export function apiContextMiddleware(req, res, next) {
   const { operations, insights } = getProviders(req);
@@ -47,7 +56,7 @@ export function apiContextMiddleware(req, res, next) {
     return next(new Error(msg));
   }
   const webApiContext = new WebApiContext();
-  const options : IIndividualContextOptions = {
+  const options: IIndividualContextOptions = {
     corporateIdentity: null,
     link: null,
     insights,
@@ -58,4 +67,4 @@ export function apiContextMiddleware(req, res, next) {
   const individualContext = new IndividualContext(options);
   req.apiContext = individualContext;
   return next();
-};
+}

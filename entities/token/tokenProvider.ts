@@ -6,12 +6,17 @@
 import { EntityMetadataBase } from '../../lib/entityMetadataProvider/entityMetadata';
 import { PersonalAccessToken, EntityImplementation } from './token';
 import { ITokenProvider, ITokenProviderCreateOptions } from '.';
-import { IEntityMetadataFixedQuery, FixedQueryType } from '../../lib/entityMetadataProvider/query';
+import {
+  IEntityMetadataFixedQuery,
+  FixedQueryType,
+} from '../../lib/entityMetadataProvider/query';
 import { Type } from './type';
 
 const thisProviderType = Type;
 
-export class TokenProvider extends EntityMetadataBase implements ITokenProvider {
+export class TokenProvider
+  extends EntityMetadataBase
+  implements ITokenProvider {
   constructor(options: ITokenProviderCreateOptions) {
     super(options);
     EntityImplementation.EnsureDefinitions();
@@ -40,23 +45,37 @@ export class TokenProvider extends EntityMetadataBase implements ITokenProvider 
 
   async getAllTokens(): Promise<PersonalAccessToken[]> {
     const query = new QueryTokensGetAll();
-    const metadatas = await this._entities.fixedQueryMetadata(thisProviderType, query);
-    const results = this.deserializeArray<PersonalAccessToken>(thisProviderType, metadatas);
+    const metadatas = await this._entities.fixedQueryMetadata(
+      thisProviderType,
+      query
+    );
+    const results = this.deserializeArray<PersonalAccessToken>(
+      thisProviderType,
+      metadatas
+    );
     return results;
   }
 
-  async queryTokensForCorporateId(corporateId: string): Promise<PersonalAccessToken[]> {
+  async queryTokensForCorporateId(
+    corporateId: string
+  ): Promise<PersonalAccessToken[]> {
     const query = new QueryTokensByCorporateID(corporateId);
-    const metadatas = await this._entities.fixedQueryMetadata(thisProviderType, query);
-    const results = this.deserializeArray<PersonalAccessToken>(thisProviderType, metadatas);
+    const metadatas = await this._entities.fixedQueryMetadata(
+      thisProviderType,
+      query
+    );
+    const results = this.deserializeArray<PersonalAccessToken>(
+      thisProviderType,
+      metadatas
+    );
     return results;
   }
 }
 
 export class QueryTokensByCorporateID implements IEntityMetadataFixedQuery {
-  public readonly fixedQueryType: FixedQueryType = FixedQueryType.TokensByCorporateId;
-  constructor(public corporateId: string) {
-  }
+  public readonly fixedQueryType: FixedQueryType =
+    FixedQueryType.TokensByCorporateId;
+  constructor(public corporateId: string) {}
 }
 
 export class QueryTokensGetAll implements IEntityMetadataFixedQuery {

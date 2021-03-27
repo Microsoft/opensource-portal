@@ -20,9 +20,22 @@ import app, { IReposJob, IReposJobResult } from '../../app';
 
 // import { buildConsolidatedMap as buildRecipientMap } from './consolidated';
 
-import { build as organizationsBuild, consolidate as organizationsConsoldate, process as organizationsProcess } from './organizations';
-import { build as repositoriesBuild, consolidate as repositoriesConsolidate, process as repositoriesProcess } from './repositories';
-import { build as teamsBuild, consolidate as teamsConsolidate, process as teamsProcess, IReportsTeamContext } from './teams';
+import {
+  build as organizationsBuild,
+  consolidate as organizationsConsoldate,
+  process as organizationsProcess,
+} from './organizations';
+import {
+  build as repositoriesBuild,
+  consolidate as repositoriesConsolidate,
+  process as repositoriesProcess,
+} from './repositories';
+import {
+  build as teamsBuild,
+  consolidate as teamsConsolidate,
+  process as teamsProcess,
+  IReportsTeamContext,
+} from './teams';
 
 import mailer from './mailer';
 
@@ -41,11 +54,7 @@ const slice = undefined; // 250;
 
 const reportGeneratedFormat = 'h:mm a dddd, MMMM Do YYYY';
 
-const providerNames = [
-  'organizations',
-  'repositories',
-  'teams',
-];
+const providerNames = ['organizations', 'repositories', 'teams'];
 
 export interface IReportsContext {
   operations: Operations;
@@ -143,9 +152,17 @@ async function buildReport(context): Promise<void> {
   }
 }
 
-export default async function run({ providers, started }: IReposJob): Promise<IReposJobResult> {
+export default async function run({
+  providers,
+  started,
+}: IReposJob): Promise<IReposJobResult> {
   const { mailProvider, operations, config } = providers;
-  const okToContinue = (config && config.github && config.github.jobs && config.github.jobs.reports && config.github.jobs.reports.enabled === true);
+  const okToContinue =
+    config &&
+    config.github &&
+    config.github.jobs &&
+    config.github.jobs.reports &&
+    config.github.jobs.reports.enabled === true;
   if (!okToContinue) {
     console.log('config.github.jobs.reports.enabled is not set');
     return {};
@@ -171,7 +188,10 @@ export default async function run({ providers, started }: IReposJob): Promise<IR
   if (!mailProvider) {
     throw new Error('No mail provider available');
   }
-  const reportConfig = config && config.github && config.github.jobs ? config.github.jobs.reports : {};
+  const reportConfig =
+    config && config.github && config.github.jobs
+      ? config.github.jobs.reports
+      : {};
   const context: IReportsContext = {
     providers,
     operations,
@@ -194,9 +214,12 @@ export default async function run({ providers, started }: IReposJob): Promise<IR
       tooManyRepoAdministrators: 15,
       orgPercentAvailablePrivateRepos: 0.15,
       fakeSend: fakeSend ? path.join(__dirname, 'sent') : undefined,
-      storeLocalReportPath: skipStore ? path.join(__dirname, 'report.json') : undefined,
+      storeLocalReportPath: skipStore
+        ? path.join(__dirname, 'report.json')
+        : undefined,
       witnessEventKey: reportConfig.witnessEventKey,
-      witnessEventReportsTimeToLiveMinutes: reportConfig.witnessEventReportsTimeToLiveMinutes,
+      witnessEventReportsTimeToLiveMinutes:
+        reportConfig.witnessEventReportsTimeToLiveMinutes,
       consolidatedSchemaVersion: '170503',
       fromAddress: reportConfig.mail.from,
       dataLakeAccount: null,
@@ -208,16 +231,26 @@ export default async function run({ providers, started }: IReposJob): Promise<IR
     },
     reports: {
       reportRedisClient: null, // reportRedisClient,
-      send: true && (fakeSend || reportConfig.mail && reportConfig.mail.enabled),
+      send:
+        true && (fakeSend || (reportConfig.mail && reportConfig.mail.enabled)),
       store: true && !skipStore,
-      dataLake: true && !skipStore && reportConfig.dataLake && reportConfig.dataLake.enabled,
+      dataLake:
+        true &&
+        !skipStore &&
+        reportConfig.dataLake &&
+        reportConfig.dataLake.enabled,
     },
     visitedDefinitions: {},
     consolidated: {},
     config,
     app,
   };
-  if (context.reports.dataLake === true && reportConfig.dataLake && reportConfig.dataLake.azureStorage && reportConfig.dataLake.azureStorage.key) {
+  if (
+    context.reports.dataLake === true &&
+    reportConfig.dataLake &&
+    reportConfig.dataLake.azureStorage &&
+    reportConfig.dataLake.azureStorage.key
+  ) {
     context.settings.dataLakeAccount = reportConfig.dataLake.azureStorage;
   }
   await buildReport(context);
@@ -265,7 +298,9 @@ async function processReports(context) {
   return context;
 }
 
-async function consolidateReports(context: IReportsContext): Promise<IReportsContext> {
+async function consolidateReports(
+  context: IReportsContext
+): Promise<IReportsContext> {
   try {
     await organizationsConsoldate(context);
   } catch (globalConsolidationError) {
@@ -332,11 +367,16 @@ async function dataLakeUpload(context: IReportsContext) {
               } else if (definition && definition.hasList) {
                 targetCollectionName = 'listItems';
               }
-              if (targetCollectionName && issues[targetCollectionName] && Array.isArray(issues[targetCollectionName])) {
+              if (
+                targetCollectionName &&
+                issues[targetCollectionName] &&
+                Array.isArray(issues[targetCollectionName])
+              ) {
                 const collection = issues[targetCollectionName];
                 for (let l = 0; l < collection.length; l++) {
                   const row = collection[l];
-                  const rowValue = typeof (row) === 'object' ? row : { text: row };
+                  const rowValue =
+                    typeof row === 'object' ? row : { text: row };
                   if (!row.entityName) {
                     rowValue.entityName = entity.name;
                   }
@@ -346,11 +386,14 @@ async function dataLakeUpload(context: IReportsContext) {
                     delete entityClone.issues;
                     rowValue.entity = entityClone;
                   }
-                  const dataLakeRow = Object.assign({
-                    issueProviderName: providerName,
-                    issueTimestamp: started,
-                    issueTypeName: issueTypeName,
-                  }, rowValue);
+                  const dataLakeRow = Object.assign(
+                    {
+                      issueProviderName: providerName,
+                      issueTimestamp: started,
+                      issueTypeName: issueTypeName,
+                    },
+                    rowValue
+                  );
                   dataLakeOutput.push(JSON.stringify(dataLakeRow));
                 }
               }
@@ -369,57 +412,76 @@ async function dataLakeUpload(context: IReportsContext) {
   }
 }
 
-function saveDataLakeOutput(context: IReportsContext, dataLakeOutput: string[]): Promise<IReportsContext> {
+function saveDataLakeOutput(
+  context: IReportsContext,
+  dataLakeOutput: string[]
+): Promise<IReportsContext> {
   // Each line of the file is its own independent JSON object
   const text = dataLakeOutput.join('\r\n');
   const insights = context.insights;
   const dla = context.settings.dataLakeAccount;
   if (!dla) {
-    return Promise.reject(new Error('Missing Azure Data Lake / Azure Storage Account information'));
+    return Promise.reject(
+      new Error('Missing Azure Data Lake / Azure Storage Account information')
+    );
   }
   return new Promise((resolve, reject) => {
     const backupBlobService = azure.createBlobService(dla.account, dla.key);
     const containerName = dla.containerName;
-    backupBlobService.createContainerIfNotExists(containerName, (createContainerError) => {
-      if (createContainerError) {
-        insights.trackException({ exception: createContainerError });
-        return reject(createContainerError);
-      }
-      const blobPrefix = dla.blobPrefix || 'consolidatedReports';
-      const backupBlobName = `${blobPrefix}_${moment.utc().format('YYYY_MM_DD')}.json.gz`;
-      writeDeflatedTextFile(text, (writeError, deflatedTempPath) => {
-        if (writeError) {
-          insights.trackException({ exception: writeError });
-          return reject(writeError);
+    backupBlobService.createContainerIfNotExists(
+      containerName,
+      (createContainerError) => {
+        if (createContainerError) {
+          insights.trackException({ exception: createContainerError });
+          return reject(createContainerError);
         }
-        backupBlobService.createBlockBlobFromLocalFile(containerName, backupBlobName, deflatedTempPath, cloudError => {
-          if (cloudError) {
-            insights.trackException({ exception: cloudError });
-            return reject(cloudError);
+        const blobPrefix = dla.blobPrefix || 'consolidatedReports';
+        const backupBlobName = `${blobPrefix}_${moment
+          .utc()
+          .format('YYYY_MM_DD')}.json.gz`;
+        writeDeflatedTextFile(text, (writeError, deflatedTempPath) => {
+          if (writeError) {
+            insights.trackException({ exception: writeError });
+            return reject(writeError);
           }
-          // Successful
-          insights.trackEvent({
-            name: 'JobReportsReportDataLakeBackup',
-            properties: {
-              filename: backupBlobName,
-              containerName: containerName,
-              account: dla.account,
-            },
-          });
-          return resolve(context);
+          backupBlobService.createBlockBlobFromLocalFile(
+            containerName,
+            backupBlobName,
+            deflatedTempPath,
+            (cloudError) => {
+              if (cloudError) {
+                insights.trackException({ exception: cloudError });
+                return reject(cloudError);
+              }
+              // Successful
+              insights.trackEvent({
+                name: 'JobReportsReportDataLakeBackup',
+                properties: {
+                  filename: backupBlobName,
+                  containerName: containerName,
+                  account: dla.account,
+                },
+              });
+              return resolve(context);
+            }
+          );
         });
-      });
-    });
+      }
+    );
   });
 }
 
-async function storeReports(context: IReportsContext): Promise<IReportsContext> {
+async function storeReports(
+  context: IReportsContext
+): Promise<IReportsContext> {
   context.insights.trackEvent({ name: 'JobReportsReportStoringStarted' });
   const report = Object.assign({}, context.consolidated);
   const consolidatedSchemaVersion = context.settings.consolidatedSchemaVersion;
   report.metadata = {
     started: context.started,
-    startedText: moment(context.started).tz('America/Los_Angeles').format(reportGeneratedFormat),
+    startedText: moment(context.started)
+      .tz('America/Los_Angeles')
+      .format(reportGeneratedFormat),
     finished: moment().format(),
     version: consolidatedSchemaVersion,
   };
@@ -432,7 +494,9 @@ async function storeReports(context: IReportsContext): Promise<IReportsContext> 
     context.insights.trackEvent({ name: 'JobReportsReportStoringSkipped' });
     return context;
   }
-  const stringSizeUncompressed = fileSize(Buffer.byteLength(json, 'utf8')).human();
+  const stringSizeUncompressed = fileSize(
+    Buffer.byteLength(json, 'utf8')
+  ).human();
   context.insights.trackEvent({
     name: 'JobReportsReportStoring',
     properties: {
@@ -442,23 +506,31 @@ async function storeReports(context: IReportsContext): Promise<IReportsContext> 
   });
   const ttl = context.settings.witnessEventReportsTimeToLiveMinutes;
   if (!ttl) {
-    throw new Error('No witnessEventReportsTimeToLiveMinutes configuration value defined for the report TTL. To make efficient use of Redis memory, a TTL must be provided.');
+    throw new Error(
+      'No witnessEventReportsTimeToLiveMinutes configuration value defined for the report TTL. To make efficient use of Redis memory, a TTL must be provided.'
+    );
   }
   const reportingRedis = context.reports.reportRedisClient;
   const reportingKey = context.settings.witnessEventKey;
   if (reportingRedis && reportingKey) {
-    reportingRedis.setCompressedWithExpire(reportingKey, json, ttl)
+    reportingRedis.setCompressedWithExpire(reportingKey, json, ttl);
   }
   return context;
 }
 
-async function storeLocalReport(report, storeLocalReportPath, context: IReportsContext): Promise<IReportsContext> {
+async function storeLocalReport(
+  report,
+  storeLocalReportPath,
+  context: IReportsContext
+): Promise<IReportsContext> {
   const prettyFile = JSON.stringify(report, undefined, 2);
   writeTextToFile(storeLocalReportPath, prettyFile);
   return context;
 }
 
-async function recordMetrics(context: IReportsContext): Promise<IReportsContext> {
+async function recordMetrics(
+  context: IReportsContext
+): Promise<IReportsContext> {
   const insights = context.insights;
   const consolidated = context.consolidated;
   let overallIssues = 0;
@@ -487,7 +559,11 @@ async function recordMetrics(context: IReportsContext): Promise<IReportsContext>
               } else if (definition && definition.hasList) {
                 targetCollectionName = 'listItems';
               }
-              if (targetCollectionName && issues[targetCollectionName] && Array.isArray(issues[targetCollectionName])) {
+              if (
+                targetCollectionName &&
+                issues[targetCollectionName] &&
+                Array.isArray(issues[targetCollectionName])
+              ) {
                 const count = issues[targetCollectionName].length;
                 let currentValue = countByIssue.get(issueList[k]);
                 if (!currentValue) {

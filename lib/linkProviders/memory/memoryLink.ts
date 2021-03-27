@@ -3,7 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { ICorporateLinkExtended, ICorporateLinkExtendedDirectMethods } from '../../../business/corporateLink';
+import {
+  ICorporateLinkExtended,
+  ICorporateLinkExtendedDirectMethods,
+} from '../../../business/corporateLink';
 import { MemoryLinkProvider } from './memoryLinkProvider';
 
 export interface IInternalMemoryLinkOptions {
@@ -11,12 +14,13 @@ export interface IInternalMemoryLinkOptions {
 }
 
 export interface IMemoryLinkInstanceDataHelpers {
-  delete: () => Promise<boolean>,
-  update: () => Promise<boolean>,
-  save: () => Promise<boolean>,
+  delete: () => Promise<boolean>;
+  update: () => Promise<boolean>;
+  save: () => Promise<boolean>;
 }
 
-export interface IMemoryLinkInstanceInternalHelpers extends ICorporateLinkExtendedDirectMethods {
+export interface IMemoryLinkInstanceInternalHelpers
+  extends ICorporateLinkExtendedDirectMethods {
   acknowledgeSuccessfulUpdate: () => void;
   getDirtyColumns: () => any;
   getDirectEntity: () => any;
@@ -53,7 +57,11 @@ export class CorporateMemoryLink implements ICorporateLinkExtended {
   }
 
   set corporateMailAddress(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateMailAddress, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateMailAddress,
+      value
+    );
   }
 
   get corporateAlias() {
@@ -69,7 +77,11 @@ export class CorporateMemoryLink implements ICorporateLinkExtended {
   }
 
   set corporateUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateUsername,
+      value
+    );
   }
 
   get corporateDisplayName() {
@@ -77,7 +89,11 @@ export class CorporateMemoryLink implements ICorporateLinkExtended {
   }
 
   set corporateDisplayName(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateDisplayName, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateDisplayName,
+      value
+    );
   }
 
   get corporateMailAddress() {
@@ -89,7 +105,11 @@ export class CorporateMemoryLink implements ICorporateLinkExtended {
   }
 
   set thirdPartyUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.thirdPartyUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.thirdPartyUsername,
+      value
+    );
   }
 
   get thirdPartyId(): string {
@@ -113,7 +133,11 @@ export class CorporateMemoryLink implements ICorporateLinkExtended {
   }
 
   set serviceAccountMail(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.serviceAccountMail, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.serviceAccountMail,
+      value
+    );
   }
 
   get isServiceAccount() {
@@ -148,7 +172,9 @@ function _updateColumn(self, columnName, newValue): void {
     if (self._entity[columnName] !== self._originalEntity[columnName]) {
       self._entity[columnName] = self._originalEntity[columnName];
       delete self._columnUpdates[columnName];
-      console.log(`${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`);
+      console.log(
+        `${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`
+      );
     }
   }
 }
@@ -177,14 +203,17 @@ function getDirtyColumns(self) {
   return self._columnUpdates;
 }
 
-function createDataHelpers(link: CorporateMemoryLink, provider: MemoryLinkProvider): IMemoryLinkInstanceDataHelpers {
+function createDataHelpers(
+  link: CorporateMemoryLink,
+  provider: MemoryLinkProvider
+): IMemoryLinkInstanceDataHelpers {
   return {
-    update: async () : Promise<boolean> => {
+    update: async (): Promise<boolean> => {
       await provider.updateLink(link);
       return true;
     },
 
-    save: async () : Promise<boolean> => {
+    save: async (): Promise<boolean> => {
       try {
         await provider.updateLink(link);
       } catch (error) {
@@ -199,7 +228,7 @@ function createDataHelpers(link: CorporateMemoryLink, provider: MemoryLinkProvid
       return true;
     },
 
-    delete: async () : Promise<boolean> => {
+    delete: async (): Promise<boolean> => {
       await provider.deleteLink(link);
       return true;
     },

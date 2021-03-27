@@ -3,13 +3,21 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { Organization, MemberSearch, ICrossOrganizationMembersResult, Operations } from '../../business';
+import {
+  Organization,
+  MemberSearch,
+  ICrossOrganizationMembersResult,
+  Operations,
+} from '../../business';
 import { getProviders, ReposAppRequest } from '../../transitional';
 import LeakyLocalCache, { getLinksLightCache } from './leakyLocalCache';
 
 // BAD PRACTICE: leaky local cache
 // CONSIDER: use a better approach
-const leakyLocalCachePeople = new LeakyLocalCache<boolean, ICrossOrganizationMembersResult>();
+const leakyLocalCachePeople = new LeakyLocalCache<
+  boolean,
+  ICrossOrganizationMembersResult
+>();
 
 export async function getPeopleAcrossOrganizations(operations: Operations) {
   const value = leakyLocalCachePeople.get(true);
@@ -26,7 +34,9 @@ export async function equivalentLegacyPeopleSearch(req: ReposAppRequest) {
   const links = await getLinksLightCache(operations);
   const org = req.organization ? req.organization.name : null;
   const orgId = req.organization ? (req.organization as Organization).id : null;
-  const { crossOrganizationMembers } = await getPeopleAcrossOrganizations(operations);
+  const { crossOrganizationMembers } = await getPeopleAcrossOrganizations(
+    operations
+  );
   const page = req.query.page_number ? Number(req.query.page_number) : 1;
   let phrase = req.query.q as string;
   let type = req.query.type as string;

@@ -38,27 +38,30 @@ router.get('/', function (req, res, next) {
 
 router.get('/', lowercaser(['sort', 'set']), RouteTeamsPager);
 
-router.use('/:teamSlug', asyncHandler(async (req: ITeamsRequest, res, next) => {
-  const organization = req.organization;
-  const orgBaseUrl = organization.baseUrl;
-  const slug = req.params.teamSlug as string;
-  try {
-    const team = await organization.getTeamFromName(slug);
-    req.team2 = team;
-    // Breadcrumb and path updates
-    req.teamUrl = `${orgBaseUrl}teams/${team.slug}/`;
-    req.individualContext.webContext.pushBreadcrumb(team.name);
-    return next();
-  } catch (getTeamError) {
-    if (getTeamError && getTeamError.slug) {
-    // Redirect if a name was provided when a slug is more appropriate
-    return res.redirect(`${orgBaseUrl}teams/${getTeamError.slug}`);
+router.use(
+  '/:teamSlug',
+  asyncHandler(async (req: ITeamsRequest, res, next) => {
+    const organization = req.organization;
+    const orgBaseUrl = organization.baseUrl;
+    const slug = req.params.teamSlug as string;
+    try {
+      const team = await organization.getTeamFromName(slug);
+      req.team2 = team;
+      // Breadcrumb and path updates
+      req.teamUrl = `${orgBaseUrl}teams/${team.slug}/`;
+      req.individualContext.webContext.pushBreadcrumb(team.name);
+      return next();
+    } catch (getTeamError) {
+      if (getTeamError && getTeamError.slug) {
+        // Redirect if a name was provided when a slug is more appropriate
+        return res.redirect(`${orgBaseUrl}teams/${getTeamError.slug}`);
+      }
+      if (getTeamError) {
+        return next(getTeamError);
+      }
     }
-    if (getTeamError) {
-      return next(getTeamError);
-    }
-  }
-}));
+  })
+);
 
 router.use('/:teamname', RouteTeam);
 

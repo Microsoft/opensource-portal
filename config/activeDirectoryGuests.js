@@ -11,11 +11,14 @@
 
 const arrayFromString = require('./utils/arrayFromString');
 
-const speciallyAuthorizedGuestUserIdsEnvironmentName = 'AAD_AUTHORIZED_GUEST_IDS';
+const speciallyAuthorizedGuestUserIdsEnvironmentName =
+  'AAD_AUTHORIZED_GUEST_IDS';
 
 module.exports = function (graphApi) {
   const environmentProvider = graphApi.environment;
-  const speciallyAuthorizedIdsValue = environmentProvider.get(speciallyAuthorizedGuestUserIdsEnvironmentName);
+  const speciallyAuthorizedIdsValue = environmentProvider.get(
+    speciallyAuthorizedGuestUserIdsEnvironmentName
+  );
 
   return {
     authorizedIds: arrayFromString(speciallyAuthorizedIdsValue || ''),

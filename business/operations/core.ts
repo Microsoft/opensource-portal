@@ -9,7 +9,22 @@ import { OrganizationSetting } from '../../entities/organizationSettings/organiz
 import { GitHubAppAuthenticationType, AppPurpose } from '../../github';
 import { GitHubTokenManager } from '../../github/tokenManager';
 import { RestLibrary } from '../../lib/github';
-import { CoreCapability, CreateError, IAuthorizationHeaderValue, ICacheDefaultTimes, ICacheOptions, IOperationsCentralOperationsToken, IOperationsDefaultCacheTimes, IOperationsGitHubRestLibrary, IOperationsInstance, IOperationsProviders, IOperationsUrls, IProviders, throwIfNotCapable, throwIfNotGitHubCapable } from '../../transitional';
+import {
+  CoreCapability,
+  CreateError,
+  IAuthorizationHeaderValue,
+  ICacheDefaultTimes,
+  ICacheOptions,
+  IOperationsCentralOperationsToken,
+  IOperationsDefaultCacheTimes,
+  IOperationsGitHubRestLibrary,
+  IOperationsInstance,
+  IOperationsProviders,
+  IOperationsUrls,
+  IProviders,
+  throwIfNotCapable,
+  throwIfNotGitHubCapable,
+} from '../../transitional';
 import { wrapError } from '../../utils';
 import { Account } from '../account';
 import GitHubApplication from '../application';
@@ -59,9 +74,11 @@ const defaults: ICacheDefaultTimes = {
   [CacheDefault.teamMaintainersStaleSeconds]: 60 * 2 /* 2m */,
   [CacheDefault.orgMembershipStaleSeconds]: 60 * 5 /* 5m */,
   [CacheDefault.orgMembershipDirectStaleSeconds]: 30 /* 30s */,
-  [CacheDefault.crossOrgsReposStaleSecondsPerOrg]: 60 * 60 * 2 /* 2 hours per org */,
+  [CacheDefault.crossOrgsReposStaleSecondsPerOrg]:
+    60 * 60 * 2 /* 2 hours per org */,
   [CacheDefault.crossOrgsReposParallelCalls]: 3,
-  [CacheDefault.crossOrgsMembersStaleSecondsPerOrg]: 60 * 60 * 2 /* 2 hours per org */,
+  [CacheDefault.crossOrgsMembersStaleSecondsPerOrg]:
+    60 * 60 * 2 /* 2 hours per org */,
   [CacheDefault.crossOrgsMembersParallelCalls]: 5,
   [CacheDefault.corporateLinksStaleSeconds]: 30 /* 30s (used to be 5m) */,
   [CacheDefault.repoBranchesStaleSeconds]: 60 * 5 /* 5m */,
@@ -78,7 +95,10 @@ export interface IOptionWithPageSize {
   per_page?: number;
 }
 
-export function getPageSize(operations: IOperationsInstance, options?: IOptionWithPageSize) {
+export function getPageSize(
+  operations: IOperationsInstance,
+  options?: IOptionWithPageSize
+) {
   if (options?.per_page) {
     return options.per_page;
   }
@@ -88,12 +108,17 @@ export function getPageSize(operations: IOperationsInstance, options?: IOptionWi
   return DefaultPageSize;
 }
 
-export function getMaxAgeSeconds(operations: IOperationsInstance, cacheDefault: CacheDefault, options?: ICacheOptions, fallback?: number) {
+export function getMaxAgeSeconds(
+  operations: IOperationsInstance,
+  cacheDefault: CacheDefault,
+  options?: ICacheOptions,
+  fallback?: number
+) {
   if (options && options.maxAgeSeconds !== undefined) {
     return options.maxAgeSeconds as number;
   }
   if (operations.hasCapability(CoreCapability.DefaultCacheTimes)) {
-    const ops = operations as any as IOperationsDefaultCacheTimes;
+    const ops = (operations as any) as IOperationsDefaultCacheTimes;
     if (ops.defaults && ops.defaults[cacheDefault] !== undefined) {
       return ops.defaults[cacheDefault] as number;
     }
@@ -144,16 +169,24 @@ export abstract class OperationsCore
 
   throwIfNotCompatible(capability: CoreCapability) {
     if (!this.hasCapability(capability)) {
-      throw new Error(`The operations implementation is not capable of supporting ${capability}`);
+      throw new Error(
+        `The operations implementation is not capable of supporting ${capability}`
+      );
     }
-  };
+  }
 
   protected abstract get tokenManager(): GitHubTokenManager;
 
-  async getAccountByUsername(username: string, options?: ICacheOptions): Promise<Account> {
+  async getAccountByUsername(
+    username: string,
+    options?: ICacheOptions
+  ): Promise<Account> {
     options = options || {};
     const operations = throwIfNotGitHubCapable(this);
-    const centralOperations = throwIfNotCapable<IOperationsCentralOperationsToken>(this, CoreCapability.GitHubCentralOperations);
+    const centralOperations = throwIfNotCapable<IOperationsCentralOperationsToken>(
+      this,
+      CoreCapability.GitHubCentralOperations
+    );
     if (!username) {
       throw CreateError.ParameterRequired('username');
     }
@@ -161,7 +194,11 @@ export abstract class OperationsCore
       username: username,
     };
     const cacheOptions: ICacheOptions = {
-      maxAgeSeconds: getMaxAgeSeconds(operations, CacheDefault.accountDetailStaleSeconds, options),
+      maxAgeSeconds: getMaxAgeSeconds(
+        operations,
+        CacheDefault.accountDetailStaleSeconds,
+        options
+      ),
     };
     if (options.backgroundRefresh !== undefined) {
       cacheOptions.backgroundRefresh = options.backgroundRefresh;
@@ -170,16 +207,30 @@ export abstract class OperationsCore
       const getHeaderFunction = centralOperations.getCentralOperationsToken();
       // const getHeaderFunction = getCentralOperationsAuthorizationHeader(operations);
       const authorizationHeader = await getHeaderFunction(AppPurpose.Data);
-      const entity = await operations.github.call(authorizationHeader, 'users.getByUsername', parameters, cacheOptions);
-      const account = new Account(entity, this, getHeaderFunction.bind(null, AppPurpose.Data));
+      const entity = await operations.github.call(
+        authorizationHeader,
+        'users.getByUsername',
+        parameters,
+        cacheOptions
+      );
+      const account = new Account(
+        entity,
+        this,
+        getHeaderFunction.bind(null, AppPurpose.Data)
+      );
       return account;
     } catch (error) {
       if (error.status && error.status == /* loose */ 404) {
-        error = new Error(`The GitHub username ${username} could not be found (or has been deleted)`);
+        error = new Error(
+          `The GitHub username ${username} could not be found (or has been deleted)`
+        );
         error.status = 404;
         throw error;
       } else if (error) {
-        throw wrapError(error, `Could not get details about account ${username}: ${error.message}`);
+        throw wrapError(
+          error,
+          `Could not get details about account ${username}: ${error.message}`
+        );
       }
     }
   }
@@ -200,13 +251,15 @@ export abstract class OperationsCore
   }
 
   get absoluteBaseUrl(): string {
-    let baseUrl = this.config && this.config.webServer && this.config.webServer.baseUrl ? this.config.webServer.baseUrl : null;
+    let baseUrl =
+      this.config && this.config.webServer && this.config.webServer.baseUrl
+        ? this.config.webServer.baseUrl
+        : null;
     if (baseUrl) {
       return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     }
     return '/';
   }
-
 
   get initialized(): Date {
     return this._initialized;
@@ -223,10 +276,16 @@ export abstract class OperationsCore
   async initialize() {
     const tokenManager = this.tokenManager;
     await tokenManager.initialize();
-    tokenManager.getAppIds().map(appId => {
+    tokenManager.getAppIds().map((appId) => {
       const { friendlyName } = tokenManager.getAppById(appId);
       const slug = tokenManager.getSlugById(appId);
-      const app = new GitHubApplication(this, appId, slug, friendlyName, this.getAppAuthorizationHeader.bind(this, tokenManager, appId));
+      const app = new GitHubApplication(
+        this,
+        appId,
+        slug,
+        friendlyName,
+        this.getAppAuthorizationHeader.bind(this, tokenManager, appId)
+      );
       this._applicationIds.set(appId, app);
     });
     this._initialized = new Date();
@@ -242,8 +301,13 @@ export abstract class OperationsCore
     return Array.from(this._applicationIds.values());
   }
 
-  protected async getAppAuthorizationHeader(tokenManager: GitHubTokenManager, appId: number): Promise<string> {
-    const jwt = await tokenManager.getAppById(appId).getAppAuthenticationToken();
+  protected async getAppAuthorizationHeader(
+    tokenManager: GitHubTokenManager,
+    appId: number
+  ): Promise<string> {
+    const jwt = await tokenManager
+      .getAppById(appId)
+      .getAppAuthenticationToken();
     const value = `bearer ${jwt}`;
     return value;
   }
@@ -254,18 +318,40 @@ export abstract class OperationsCore
     legacyOwnerToken: string,
     centralOperationsFallbackToken: string,
     appAuthenticationType: GitHubAppAuthenticationType,
-    purpose: AppPurpose): Promise<IAuthorizationHeaderValue> {
-    if (!this.tokenManager.organizationSupportsAnyPurpose(organizationName, organizationSettings)) {
-      const legacyTokenValue = legacyOwnerToken || centralOperationsFallbackToken;
+    purpose: AppPurpose
+  ): Promise<IAuthorizationHeaderValue> {
+    if (
+      !this.tokenManager.organizationSupportsAnyPurpose(
+        organizationName,
+        organizationSettings
+      )
+    ) {
+      const legacyTokenValue =
+        legacyOwnerToken || centralOperationsFallbackToken;
       if (!legacyTokenValue) {
-        throw new Error(`Organization ${organizationName} is not configured with a GitHub app, Personal Access Token ownerToken configuration value, or a fallback central operations token`);
+        throw new Error(
+          `Organization ${organizationName} is not configured with a GitHub app, Personal Access Token ownerToken configuration value, or a fallback central operations token`
+        );
       }
-      return { value: `token ${legacyTokenValue}`, purpose: null, source: legacyOwnerToken ? 'legacyOwnerToken' : 'centralOperationsFallbackToken' };
+      return {
+        value: `token ${legacyTokenValue}`,
+        purpose: null,
+        source: legacyOwnerToken
+          ? 'legacyOwnerToken'
+          : 'centralOperationsFallbackToken',
+      };
     }
     if (!purpose) {
       purpose = AppPurpose.Data;
-      console.log(`TODO: consider investigating the callback here as to why the getAuthorizationHeader call was not provided a purpose for the ${organizationName} org. falling back to: purpose=${purpose}`);
+      console.log(
+        `TODO: consider investigating the callback here as to why the getAuthorizationHeader call was not provided a purpose for the ${organizationName} org. falling back to: purpose=${purpose}`
+      );
     }
-    return this.tokenManager.getOrganizationAuthorizationHeader(organizationName, purpose, organizationSettings, appAuthenticationType);
+    return this.tokenManager.getOrganizationAuthorizationHeader(
+      organizationName,
+      purpose,
+      organizationSettings,
+      appAuthenticationType
+    );
   }
 }

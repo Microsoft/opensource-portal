@@ -11,7 +11,10 @@ const debug = Debug('appinsights');
 
 import type { TelemetryClient } from 'applicationinsights';
 
-function createWrappedClient(propertiesToInsert: any, client: TelemetryClient): TelemetryClient {
+function createWrappedClient(
+  propertiesToInsert: any,
+  client: TelemetryClient
+): TelemetryClient {
   let c = client;
   if (client) {
     client.commonProperties = propertiesToInsert;
@@ -34,7 +37,9 @@ function createWrappedClient(propertiesToInsert: any, client: TelemetryClient): 
 }
 
 const consoleHandler = (eventNameOrProperties) => {
-  eventNameOrProperties = eventNameOrProperties || { name: 'Unknown event, may be from pre-v1.0.0 applicationinsights' };
+  eventNameOrProperties = eventNameOrProperties || {
+    name: 'Unknown event, may be from pre-v1.0.0 applicationinsights',
+  };
   let props = '';
   if (eventNameOrProperties && eventNameOrProperties.properties) {
     props = ' ';
@@ -42,14 +47,25 @@ const consoleHandler = (eventNameOrProperties) => {
       props += `${key}=${value} `;
     }
   }
-  debug((typeof(eventNameOrProperties) === 'string' ? eventNameOrProperties : eventNameOrProperties.name) + props);
+  debug(
+    (typeof eventNameOrProperties === 'string'
+      ? eventNameOrProperties
+      : eventNameOrProperties.name) + props
+  );
 };
 const consoleMetric = (eventNameOrProperties) => {
-  if (typeof(eventNameOrProperties) === 'string') {
-    debug(`Legacy applicationinsights Metric ${eventNameOrProperties} was not recorded`);
+  if (typeof eventNameOrProperties === 'string') {
+    debug(
+      `Legacy applicationinsights Metric ${eventNameOrProperties} was not recorded`
+    );
   } else {
-    eventNameOrProperties = eventNameOrProperties || { name: 'UnknownMetric', value: 0 };
-    debug(`Metric(${eventNameOrProperties.name}: ${eventNameOrProperties.value}`);
+    eventNameOrProperties = eventNameOrProperties || {
+      name: 'UnknownMetric',
+      value: 0,
+    };
+    debug(
+      `Metric(${eventNameOrProperties.name}: ${eventNameOrProperties.value}`
+    );
   }
 };
 

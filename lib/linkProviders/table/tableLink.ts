@@ -3,7 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { ICorporateLinkExtended, ICorporateLinkExtendedDirectMethods } from '../../../business/corporateLink';
+import {
+  ICorporateLinkExtended,
+  ICorporateLinkExtendedDirectMethods,
+} from '../../../business/corporateLink';
 import { TableLinkProvider } from './tableLinkProvider';
 
 export interface IInternalTableLinkOptions {
@@ -11,12 +14,13 @@ export interface IInternalTableLinkOptions {
 }
 
 export interface ITableLinkInstanceDataHelpers {
-  delete: () => Promise<boolean>,
-  update: () => Promise<boolean>,
-  save: () => Promise<boolean>,
+  delete: () => Promise<boolean>;
+  update: () => Promise<boolean>;
+  save: () => Promise<boolean>;
 }
 
-export interface ITableLinkInstanceInternalHelpers extends ICorporateLinkExtendedDirectMethods {
+export interface ITableLinkInstanceInternalHelpers
+  extends ICorporateLinkExtendedDirectMethods {
   acknowledgeSuccessfulUpdate: () => void;
   getDirtyColumns: () => any;
   getDirectEntity: () => any;
@@ -57,7 +61,11 @@ export class CorporateTableLink implements ICorporateLinkExtended {
   }
 
   set corporateMailAddress(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateMailAddress, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateMailAddress,
+      value
+    );
   }
 
   get corporateAlias() {
@@ -77,7 +85,11 @@ export class CorporateTableLink implements ICorporateLinkExtended {
   }
 
   set corporateUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateUsername,
+      value
+    );
   }
 
   get corporateDisplayName() {
@@ -85,7 +97,11 @@ export class CorporateTableLink implements ICorporateLinkExtended {
   }
 
   set corporateDisplayName(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.corporateDisplayName, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.corporateDisplayName,
+      value
+    );
   }
 
   get thirdPartyUsername(): string {
@@ -93,7 +109,11 @@ export class CorporateTableLink implements ICorporateLinkExtended {
   }
 
   set thirdPartyUsername(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.thirdPartyUsername, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.thirdPartyUsername,
+      value
+    );
   }
 
   get thirdPartyId(): string {
@@ -117,7 +137,11 @@ export class CorporateTableLink implements ICorporateLinkExtended {
   }
 
   set serviceAccountMail(value: string) {
-    _updateColumn(this, this._provider.propertyMapping.serviceAccountMail, value);
+    _updateColumn(
+      this,
+      this._provider.propertyMapping.serviceAccountMail,
+      value
+    );
   }
 
   get isServiceAccount() {
@@ -152,7 +176,9 @@ function _updateColumn(self, columnName, newValue): void {
     if (self._entity[columnName] !== self._originalEntity[columnName]) {
       self._entity[columnName] = self._originalEntity[columnName];
       delete self._columnUpdates[columnName];
-      console.log(`${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`);
+      console.log(
+        `${columnName} toggled back to original value for ${self._id} to: ${self._entity[columnName]}`
+      );
     }
   }
 }
@@ -181,13 +207,16 @@ function getDirtyColumns(self) {
   return self._columnUpdates;
 }
 
-function createDataHelpers(link: CorporateTableLink, provider: TableLinkProvider): ITableLinkInstanceDataHelpers {
+function createDataHelpers(
+  link: CorporateTableLink,
+  provider: TableLinkProvider
+): ITableLinkInstanceDataHelpers {
   return {
-    update: async () : Promise<boolean> => {
+    update: async (): Promise<boolean> => {
       return provider.updateLink(link);
     },
 
-    save: async () : Promise<boolean> => {
+    save: async (): Promise<boolean> => {
       try {
         return provider.updateLink(link);
       } catch (error) {
@@ -202,7 +231,7 @@ function createDataHelpers(link: CorporateTableLink, provider: TableLinkProvider
       }
     },
 
-    delete: async () : Promise<boolean> => {
+    delete: async (): Promise<boolean> => {
       return provider.deleteLink(link);
     },
   };

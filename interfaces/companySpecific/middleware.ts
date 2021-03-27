@@ -9,8 +9,17 @@ import { IProviders } from '../../transitional';
 import { IndividualContext } from '../../user';
 
 export interface ICompanySpecificRepoPermissionsMiddlewareCalls {
-  afterPermissionsInitialized?: (providers: IProviders, permissions: IContextualRepositoryPermissions, activeContext: IndividualContext) => void;
-  afterPermissionsComputed?: (providers: IProviders, permissions: IContextualRepositoryPermissions, activeContext: IndividualContext, repository: Repository) => Promise<void>;
+  afterPermissionsInitialized?: (
+    providers: IProviders,
+    permissions: IContextualRepositoryPermissions,
+    activeContext: IndividualContext
+  ) => void;
+  afterPermissionsComputed?: (
+    providers: IProviders,
+    permissions: IContextualRepositoryPermissions,
+    activeContext: IndividualContext,
+    repository: Repository
+  ) => Promise<void>;
 }
 
 export interface IAttachCompanySpecificMiddleware {

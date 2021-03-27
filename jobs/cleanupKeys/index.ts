@@ -6,4 +6,8 @@
 import Job from './task';
 import app from '../../app';
 
-app.runJob(Job, { timeoutMinutes: 90, defaultDebugOutput: 'restapi', insightsPrefix: 'JobCleanupKeys' });
+app.runJob(Job, {
+  timeoutMinutes: 90,
+  defaultDebugOutput: 'restapi',
+  insightsPrefix: 'JobCleanupKeys',
+});

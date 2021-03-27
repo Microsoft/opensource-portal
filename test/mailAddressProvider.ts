@@ -23,7 +23,6 @@ function createOptions() {
 
 describe('mailAddressProvider', () => {
   describe('factory', () => {
-
     it('can create a factory by configuration', () => {
       const options = createOptions();
       mailAddressProvider(options, (error, provider) => {
@@ -35,12 +34,17 @@ describe('mailAddressProvider', () => {
     it('mock end-to-end works', () => {
       const options = createOptions();
       mailAddressProvider(options, (error, provider) => {
-        provider.getUpnToEmails().set('hello@corp.contoso.com', 'email@contoso.com');
+        provider
+          .getUpnToEmails()
+          .set('hello@corp.contoso.com', 'email@contoso.com');
 
-        provider.getAddressFromUpn('hello@corp.contoso.com', (error, address) => {
-          assert.isDefined(address, 'address is received');
-          assert.equal('email@contoso.com', address, 'address returned');
-        });
+        provider.getAddressFromUpn(
+          'hello@corp.contoso.com',
+          (error, address) => {
+            assert.isDefined(address, 'address is received');
+            assert.equal('email@contoso.com', address, 'address returned');
+          }
+        );
       });
     });
 

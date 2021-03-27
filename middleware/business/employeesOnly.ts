@@ -7,15 +7,28 @@
 
 import { ReposAppRequest } from '../../transitional';
 
-export function AuthorizeOnlyFullTimeEmployeesAndInterns(req: ReposAppRequest, res, next) {
+export function AuthorizeOnlyFullTimeEmployeesAndInterns(
+  req: ReposAppRequest,
+  res,
+  next
+) {
   const individualContext = req.individualContext;
-  if (!individualContext.corporateIdentity || !individualContext.corporateIdentity.username) {
-    return next(new Error('This resource is only available to authenticated users.'));
+  if (
+    !individualContext.corporateIdentity ||
+    !individualContext.corporateIdentity.username
+  ) {
+    return next(
+      new Error('This resource is only available to authenticated users.')
+    );
   }
   if (isEmployeeOrIntern(individualContext.corporateIdentity.username)) {
     return next();
   }
-  return next(new Error(`This resource is only available to full-time employees and interns at this time. Username: ${individualContext.corporateIdentity.username}`));
+  return next(
+    new Error(
+      `This resource is only available to full-time employees and interns at this time. Username: ${individualContext.corporateIdentity.username}`
+    )
+  );
 }
 
 export function isEmployeeOrIntern(upn: string): boolean {

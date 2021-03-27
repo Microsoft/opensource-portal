@@ -1,13 +1,9 @@
 module.exports = {
   root: true,
-  extends: [
-    'eslint:recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:prettier/recommended'],
   overrides: [
     {
-      files: [
-        '**/*.js',
-      ],
+      files: ['**/*.js'],
       rules: {
         'no-undef': 'off',
       },
@@ -16,16 +12,10 @@ module.exports = {
       },
     },
     {
-      files: [
-        '**/*.ts',
-      ],
+      files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
-      plugins: [
-        '@typescript-eslint',
-      ],
-      extends: [
-        'plugin:@typescript-eslint/recommended',
-      ],
+      plugins: ['@typescript-eslint'],
+      extends: ['plugin:@typescript-eslint/recommended'],
       rules: {
         '@typescript-eslint/adjacent-overload-signatures': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',

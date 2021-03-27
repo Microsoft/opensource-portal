@@ -8,5 +8,8 @@ import { IOrganizationSudo } from '../../../features';
 import { IProviders } from '../../../transitional';
 
 export interface ICompanySpecificFeatureOrganizationSudo {
-  tryCreateInstance: (providers: IProviders, organization: Organization) => IOrganizationSudo;
+  tryCreateInstance: (
+    providers: IProviders,
+    organization: Organization
+  ) => IOrganizationSudo;
 }

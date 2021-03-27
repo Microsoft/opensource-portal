@@ -17,13 +17,19 @@ export default class MembershipWebhookProcessor implements WebhookProcessor {
     return eventType === 'membership';
   }
 
-  async run(operations: Operations, organization: Organization, data: any): Promise<any> {
+  async run(
+    operations: Operations,
+    organization: Organization,
+    data: any
+  ): Promise<any> {
     const providers = operations.providers as IProviders;
     const queryCache = providers.queryCache;
     const event = data.body;
     const organizationId = event.organization.id as number;
     if (!operations.isOrganizationManagedById(organizationId)) {
-      console.log(`skipping organization ID ${organizationId} which is not directly managed: ${event.organization.login}`);
+      console.log(
+        `skipping organization ID ${organizationId} which is not directly managed: ${event.organization.login}`
+      );
       return true;
     }
     if (event.action === 'added' && event.scope === 'team') {
@@ -32,10 +38,19 @@ export default class MembershipWebhookProcessor implements WebhookProcessor {
       const organizationIdAsString = event.organization.id.toString();
       const teamIdAsString = event.team.id.toString();
       const avatar = event.member.avatar_url;
-      console.log(`team member added: login=${userLogin} id=${userIdAsString} team id=${teamIdAsString} slug=${event.team.slug} org: ${event.organization.login}`);
+      console.log(
+        `team member added: login=${userLogin} id=${userIdAsString} team id=${teamIdAsString} slug=${event.team.slug} org: ${event.organization.login}`
+      );
       try {
         if (queryCache && queryCache.supportsTeamMembership) {
-          await queryCache.addOrUpdateTeamMember(organizationIdAsString, teamIdAsString, userIdAsString, GitHubTeamRole.Member, userLogin, avatar);
+          await queryCache.addOrUpdateTeamMember(
+            organizationIdAsString,
+            teamIdAsString,
+            userIdAsString,
+            GitHubTeamRole.Member,
+            userLogin,
+            avatar
+          );
         }
       } catch (queryCacheError) {
         console.dir(queryCacheError);
@@ -45,10 +60,16 @@ export default class MembershipWebhookProcessor implements WebhookProcessor {
       const userLogin = event.member.login;
       const organizationIdAsString = event.organization.id.toString();
       const teamIdAsString = event.team.id.toString();
-      console.log(`REMOVED: team member: login=${userLogin} id=${userIdAsString} team id=${teamIdAsString} slug=${event.team.slug} org: ${event.organization.login}`);
+      console.log(
+        `REMOVED: team member: login=${userLogin} id=${userIdAsString} team id=${teamIdAsString} slug=${event.team.slug} org: ${event.organization.login}`
+      );
       try {
         if (queryCache && queryCache.supportsTeamMembership) {
-          await queryCache.removeTeamMember(organizationIdAsString, teamIdAsString, userIdAsString);
+          await queryCache.removeTeamMember(
+            organizationIdAsString,
+            teamIdAsString,
+            userIdAsString
+          );
         }
       } catch (queryCacheError) {
         console.dir(queryCacheError);

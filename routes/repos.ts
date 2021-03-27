@@ -21,6 +21,10 @@ router.use(function (req: ReposAppRequest, res, next) {
   next();
 });
 
-router.get('/', lowercaser(['sort', 'language', 'type', 'tt']), RouteReposPager);
+router.get(
+  '/',
+  lowercaser(['sort', 'language', 'type', 'tt']),
+  RouteReposPager
+);
 
 export default router;

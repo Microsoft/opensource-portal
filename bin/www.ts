@@ -38,12 +38,12 @@ app.startServer = function startWebServer(): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       const server = http.createServer(app);
-      server.on('error', error => {
+      server.on('error', (error) => {
         console.error(`http.server.error: ${error}`);
         if (error['syscall'] !== 'listen') {
           return reject(error);
         }
-        const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
+        const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
         // handle specific listen errors with friendly messages
         switch (error['code']) {
           case 'EACCES':
@@ -61,9 +61,8 @@ app.startServer = function startWebServer(): Promise<void> {
       });
       server.on('listening', () => {
         const addr = server.address();
-        const bind = typeof addr === 'string'
-          ? 'pipe ' + addr
-          : 'port ' + addr.port;
+        const bind =
+          typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
         debug('Listening on ' + bind);
         return resolve();
       });
@@ -72,7 +71,7 @@ app.startServer = function startWebServer(): Promise<void> {
       return reject(error);
     }
   });
-}
+};
 
 app.startupApplication().then(async function ready() {
   debugInitialization('Web app is up.');

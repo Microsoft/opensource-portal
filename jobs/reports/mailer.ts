@@ -25,13 +25,15 @@ interface IReportRenderOptions {
   to: string;
   github: {
     consolidated: any;
-  }
+  };
   pretty?: boolean;
   basedir?: string;
   viewServices: any;
 }
 
-export default async function sendReports(context: IReportsContext): Promise<IReportsContext> {
+export default async function sendReports(
+  context: IReportsContext
+): Promise<IReportsContext> {
   const mailProvider = context.operations.providers.mailProvider;
   if (!mailProvider) {
     throw new Error('No mailProvider is available to send messages');
@@ -42,11 +44,15 @@ export default async function sendReports(context: IReportsContext): Promise<IRe
   }
   const overrideSendWithPath = context.settings.fakeSend;
   if (overrideSendWithPath) {
-    console.warn(`Instead of sending mail, mail will be written to ${overrideSendWithPath}`);
+    console.warn(
+      `Instead of sending mail, mail will be written to ${overrideSendWithPath}`
+    );
     try {
       fs.mkdirSync(overrideSendWithPath);
     } catch (ignored) {
-      console.log(`While creating directory to store e-mails instead of sending, received: ${ignored.message}`);
+      console.log(
+        `While creating directory to store e-mails instead of sending, received: ${ignored.message}`
+      );
     }
   }
   const recipients = Array.from(reportsByRecipient.keys());
@@ -60,16 +66,26 @@ export default async function sendReports(context: IReportsContext): Promise<IRe
   return context;
 }
 
-function resolveAddress(context: IReportsContext, upn: string): Promise<string> {
+function resolveAddress(
+  context: IReportsContext,
+  upn: string
+): Promise<string> {
   const operations = context.operations;
   const providers = operations.providers;
   if (!providers.mailAddressProvider) {
-    return Promise.reject(new Error('No mailAddressProvider is available in this application instance'));
+    return Promise.reject(
+      new Error(
+        'No mailAddressProvider is available in this application instance'
+      )
+    );
   }
   return providers.mailAddressProvider.getAddressFromUpn(upn);
 }
 
-async function recipientTypeToAddress(context: IReportsContext, address: string): Promise<string> {
+async function recipientTypeToAddress(
+  context: IReportsContext,
+  address: string
+): Promise<string> {
   const i = address.indexOf(':');
   if (i < 0) {
     return Promise.reject(new Error('Invalid consolidated address format'));
@@ -81,7 +97,9 @@ async function recipientTypeToAddress(context: IReportsContext, address: string)
   } else if (type === 'upn') {
     return resolveAddress(context, remainder);
   } else {
-    return Promise.reject(new Error(`Unsupported consolidated address type ${type}`));
+    return Promise.reject(
+      new Error(`Unsupported consolidated address type ${type}`)
+    );
   }
 }
 
@@ -117,12 +135,19 @@ function renderReport(context, report, address) {
   return html;
 }
 
-async function sendReport(context: IReportsContext, mailProvider: IMailProvider, reportsByRecipient, recipientKey: string): Promise<IReportsContext> {
+async function sendReport(
+  context: IReportsContext,
+  mailProvider: IMailProvider,
+  reportsByRecipient,
+  recipientKey: string
+): Promise<IReportsContext> {
   const report = reportsByRecipient.get(recipientKey);
   const overrideSendWithPath = context.settings.fakeSend;
   const fromAddress = context.settings.fromAddress;
   if (!fromAddress && !overrideSendWithPath) {
-    throw new Error('No from address is configured for reports in the github.jobs.reports.mail.from value');
+    throw new Error(
+      'No from address is configured for reports in the github.jobs.reports.mail.from value'
+    );
   }
   const address = await recipientTypeToAddress(context, recipientKey);
   const html = renderReport(context, report, address);
@@ -133,7 +158,9 @@ async function sendReport(context: IReportsContext, mailProvider: IMailProvider,
     headline: isActionRequired ? 'Your GitHub updates' : 'GitHub updates',
     app: `${app.config.brand.companyName} GitHub`, // may break
     companyName: app.config.brand.companyName,
-    reason: 'This digest report is provided to all managed GitHub organization owners, repository admins, and team maintainers. This report was personalized and sent directly to ' + address,
+    reason:
+      'This digest report is provided to all managed GitHub organization owners, repository admins, and team maintainers. This report was personalized and sent directly to ' +
+      address,
     notification,
   };
   const basedir = context.settings.basedir;
@@ -162,7 +189,7 @@ async function sendReport(context: IReportsContext, mailProvider: IMailProvider,
   }
   const customData = {
     receipt: mailResult,
-    eventName: mailError ? 'JobReportSendFailed' : 'JobReportSendSuccess'
+    eventName: mailError ? 'JobReportSendFailed' : 'JobReportSendSuccess',
   };
   if (mailError) {
     context.insights.trackException({

@@ -43,7 +43,10 @@ describe('configuration', () => {
       const fake = createFakeWithKeys(); // es6 destructuring would be nice
       const keyVaultClient = keyVaultHelper(fake[0]);
       const secretId = fake[1];
-      const keyVaultSchemeSecretId = secretId.replace('https://', 'keyvault://');
+      const keyVaultSchemeSecretId = secretId.replace(
+        'https://',
+        'keyvault://'
+      );
       const config = {
         bigPasscode: keyVaultSchemeSecretId,
       };
@@ -55,7 +58,10 @@ describe('configuration', () => {
       const fake = createFakeWithKeys(); // es6 destructuring would be nice
       const keyVaultClient = keyVaultHelper(fake[0]);
       const secretId = fake[1];
-      const keyVaultSchemeSecretId = secretId.replace('https://', 'keyvault://');
+      const keyVaultSchemeSecretId = secretId.replace(
+        'https://',
+        'keyvault://'
+      );
       const config = {
         deep: {
           object: {
@@ -63,22 +69,32 @@ describe('configuration', () => {
               test: {
                 value: {
                   is: keyVaultSchemeSecretId,
-                }
-              }
-            }
-          }
-        }
+                },
+              },
+            },
+          },
+        },
       };
       keyVaultClient.getObjectSecrets(config, () => {
-        assert.equal(config.deep.object.nesting.test.value.is, 'big secret', 'secret read OK');
+        assert.equal(
+          config.deep.object.nesting.test.value.is,
+          'big secret',
+          'secret read OK'
+        );
       });
     });
     it('keyvault:// tag properties work', () => {
       const fake = createFakeWithKeys(); // es6 destructuring would be nice
       const keyVaultClient = keyVaultHelper(fake[0]);
       const secretId = fake[1];
-      const keyVaultSchemeSecretId = secretId.replace('https://', 'keyvault://');
-      const keyVaultSchemeSecretIdWithTag = secretId.replace('https://', 'keyvault://tag1@');
+      const keyVaultSchemeSecretId = secretId.replace(
+        'https://',
+        'keyvault://'
+      );
+      const keyVaultSchemeSecretIdWithTag = secretId.replace(
+        'https://',
+        'keyvault://tag1@'
+      );
       const config = {
         taggedProperty: keyVaultSchemeSecretIdWithTag,
         kvProperty: keyVaultSchemeSecretId,
@@ -92,7 +108,10 @@ describe('configuration', () => {
       const fake = createFakeWithKeys(); // es6 destructuring would be nice
       const keyVaultClient = keyVaultHelper(fake[0]);
       const secretId = fake[1];
-      const keyVaultSchemeSecretIdWithTag = secretId.replace('https://', 'keyvault://undefinedtagthing@');
+      const keyVaultSchemeSecretIdWithTag = secretId.replace(
+        'https://',
+        'keyvault://undefinedtagthing@'
+      );
       const config = {
         taggedProperty: keyVaultSchemeSecretIdWithTag,
       };
@@ -119,7 +138,10 @@ describe('configuration', () => {
         a: 'keyvault://invalid/secrets/hello/1',
       };
       keyVaultClient.getObjectSecrets(config, (error) => {
-        assert.isNotNull(error, 'exception thrown due to KeyVault client error');
+        assert.isNotNull(
+          error,
+          'exception thrown due to KeyVault client error'
+        );
       });
     });
   });

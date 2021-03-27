@@ -18,6 +18,5 @@ export default class PlainSerializer implements LegacySerializer {
     return done(null, user);
   }
 
-  initialize(options: any, app: any) {
-  }
+  initialize(options: any, app: any) {}
 }

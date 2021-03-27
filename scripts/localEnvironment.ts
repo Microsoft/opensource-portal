@@ -21,9 +21,12 @@ import app, { IReposJob } from '../app';
 import { IProviders } from '../transitional';
 console.log('Initializing the local environment...');
 
-app.runJob(async function ({ providers }: IReposJob) {
-  await go(providers);
-  return {};
-}, {
-  treatGitHubAppAsBackground: false,
-});
+app.runJob(
+  async function ({ providers }: IReposJob) {
+    await go(providers);
+    return {};
+  },
+  {
+    treatGitHubAppAsBackground: false,
+  }
+);

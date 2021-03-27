@@ -19,6 +19,7 @@
     "organization"
   ],
   "scripts": {
+    "fix": "eslint --fix .",
     "start": "node ./dist/bin/www",
     "start-in-container": "node ./bin/www",
     "start-4000": "PORT=4000 DEBUG=startup node ./dist/bin/www",
@@ -145,7 +146,10 @@
     "@typescript-eslint/parser": "^4.19.0",
     "chai": "4.3.4",
     "eslint": "^7.22.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
     "mocha": "8.3.2",
+    "prettier": "^2.2.1",
     "typescript": "4.2.3"
   }
 }

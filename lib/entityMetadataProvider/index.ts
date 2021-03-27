@@ -4,8 +4,14 @@
 //
 
 import { IEntityMetadataProvider } from './entityMetadataProvider';
-import { ITableEntityMetadataProviderOptions, TableEntityMetadataProvider } from './table';
-import { IPostgresEntityMetadataProviderOptions, PostgresEntityMetadataProvider } from './postgres';
+import {
+  ITableEntityMetadataProviderOptions,
+  TableEntityMetadataProvider,
+} from './table';
+import {
+  IPostgresEntityMetadataProviderOptions,
+  PostgresEntityMetadataProvider,
+} from './postgres';
 import { MemoryEntityMetadataProvider } from './memory';
 
 export * from './entityMetadataProvider';
@@ -13,11 +19,7 @@ export * from './query';
 export * from './declarations';
 export * from './entityMetadata';
 
-const providerTypes = [
-  'memory',
-  'table',
-  'postgres',
-];
+const providerTypes = ['memory', 'table', 'postgres'];
 
 const defaultProviderName = 'memory';
 
@@ -29,7 +31,10 @@ export interface IEntityMetadataProvidersOptions {
   providerTypeName?: string;
 }
 
-export async function createAndInitializeEntityMetadataProviderInstance(options: IEntityMetadataProvidersOptions, overrideProviderType?: string): Promise<IEntityMetadataProvider> {
+export async function createAndInitializeEntityMetadataProviderInstance(
+  options: IEntityMetadataProvidersOptions,
+  overrideProviderType?: string
+): Promise<IEntityMetadataProvider> {
   if (overrideProviderType) {
     options.providerTypeName = overrideProviderType;
   }
@@ -38,9 +43,11 @@ export async function createAndInitializeEntityMetadataProviderInstance(options:
   return provider;
 }
 
-export function createEntityMetadataProviderInstance(options: IEntityMetadataProvidersOptions): IEntityMetadataProvider {
+export function createEntityMetadataProviderInstance(
+  options: IEntityMetadataProvidersOptions
+): IEntityMetadataProvider {
   const providerName = options.providerTypeName || defaultProviderName; // config.github.approvals.provider.name
-  switch(providerName) {
+  switch (providerName) {
     case 'memory':
       return new MemoryEntityMetadataProvider();
 
@@ -53,4 +60,4 @@ export function createEntityMetadataProviderInstance(options: IEntityMetadataPro
     default:
       throw new Error(`${providerName} EntityMetadataProvider not implemented`);
   }
-};
+}

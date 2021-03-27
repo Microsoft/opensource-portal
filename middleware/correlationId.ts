@@ -11,4 +11,4 @@ import { v4 as uuidV4 } from 'uuid';
 export default function (req, res, next) {
   req.correlationId = uuidV4();
   next();
-};
+}

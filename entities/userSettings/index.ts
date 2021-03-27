@@ -3,10 +3,24 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { EntityMetadataType, IEntityMetadataBaseOptions, EntityMetadataBase, IEntityMetadata } from '../../lib/entityMetadataProvider/entityMetadata';
-import { QueryBase, IEntityMetadataFixedQuery } from '../../lib/entityMetadataProvider/query';
-import { EntityMetadataMappings, MetadataMappingDefinition } from '../../lib/entityMetadataProvider/declarations';
-import { PostgresConfiguration, PostgresSettings } from '../../lib/entityMetadataProvider/postgres';
+import {
+  EntityMetadataType,
+  IEntityMetadataBaseOptions,
+  EntityMetadataBase,
+  IEntityMetadata,
+} from '../../lib/entityMetadataProvider/entityMetadata';
+import {
+  QueryBase,
+  IEntityMetadataFixedQuery,
+} from '../../lib/entityMetadataProvider/query';
+import {
+  EntityMetadataMappings,
+  MetadataMappingDefinition,
+} from '../../lib/entityMetadataProvider/declarations';
+import {
+  PostgresConfiguration,
+  PostgresSettings,
+} from '../../lib/entityMetadataProvider/postgres';
 
 const type = new EntityMetadataType('UserSettings');
 const thisProviderType = type;
@@ -42,7 +56,7 @@ interface NoParameters {}
 const Field: IUserSettingsProperties = {
   // corporateId: 'corporateId',
   contributionShareOptIn: 'contributionShareOptIn',
-}
+};
 
 const fieldNames = Object.getOwnPropertyNames(Field);
 const nativeFieldNames = fieldNames;
@@ -52,43 +66,69 @@ export class UserSettings implements IUserSettingsProperties {
 
   contributionShareOptIn: boolean;
 
-  constructor() {
-  }
+  constructor() {}
 }
 
-EntityMetadataMappings.Register(type, MetadataMappingDefinition.EntityInstantiate, () => { return new UserSettings(); });
-EntityMetadataMappings.Register(type, MetadataMappingDefinition.EntityIdColumnName, corporateId);
+EntityMetadataMappings.Register(
+  type,
+  MetadataMappingDefinition.EntityInstantiate,
+  () => {
+    return new UserSettings();
+  }
+);
+EntityMetadataMappings.Register(
+  type,
+  MetadataMappingDefinition.EntityIdColumnName,
+  corporateId
+);
 
 PostgresConfiguration.SetDefaultTableName(type, 'usersettings');
-EntityMetadataMappings.Register(type, PostgresSettings.PostgresDefaultTypeColumnName, 'usersettings');
-PostgresConfiguration.MapFieldsToColumnNamesFromListLowercased(type, fieldNames);
+EntityMetadataMappings.Register(
+  type,
+  PostgresSettings.PostgresDefaultTypeColumnName,
+  'usersettings'
+);
+PostgresConfiguration.MapFieldsToColumnNamesFromListLowercased(
+  type,
+  fieldNames
+);
 PostgresConfiguration.IdentifyNativeFields(type, nativeFieldNames);
 PostgresConfiguration.ValidateMappings(type, fieldNames, [corporateId]);
 
-EntityMetadataMappings.Register(type, PostgresSettings.PostgresQueries, (query: IEntityMetadataFixedQuery, mapMetadataPropertiesToFields: string[], metadataColumnName: string, tableName: string, getEntityTypeColumnValue) => {
-  // const entityTypeColumn = mapMetadataPropertiesToFields[EntityField.Type];
-  // const entityTypeValue = getEntityTypeColumnValue(type);
-  const base = query as UserSettingsQueryBase;
-  switch (base.query) {
-    case Query.UsersOptedInToShareData: {
-      return {
-        sql: (`
+EntityMetadataMappings.Register(
+  type,
+  PostgresSettings.PostgresQueries,
+  (
+    query: IEntityMetadataFixedQuery,
+    mapMetadataPropertiesToFields: string[],
+    metadataColumnName: string,
+    tableName: string,
+    getEntityTypeColumnValue
+  ) => {
+    // const entityTypeColumn = mapMetadataPropertiesToFields[EntityField.Type];
+    // const entityTypeValue = getEntityTypeColumnValue(type);
+    const base = query as UserSettingsQueryBase;
+    switch (base.query) {
+      case Query.UsersOptedInToShareData: {
+        return {
+          sql: `
           SELECT
             *
           FROM
             ${tableName}
           WHERE
             contributionshareoptin = $1
-          `),
-        values: [
-          true,
-        ],
-      };
+          `,
+          values: [true],
+        };
+      }
+      default:
+        throw new Error(
+          `The query ${base.query} is not implemented by this provider for the type ${type}`
+        );
     }
-    default:
-      throw new Error(`The query ${base.query} is not implemented by this provider for the type ${type}`);
   }
-});
+);
 
 // Runtime validation of FieldNames
 for (let i = 0; i < fieldNames.length; i++) {
@@ -98,7 +138,8 @@ for (let i = 0; i < fieldNames.length; i++) {
   }
 }
 
-export interface IUserSettingsProviderCreateOptions extends IEntityMetadataBaseOptions { }
+export interface IUserSettingsProviderCreateOptions
+  extends IEntityMetadataBaseOptions {}
 
 export interface IUserSettingsProvider {
   initialize(): Promise<void>;
@@ -109,7 +150,9 @@ export interface IUserSettingsProvider {
   queryContributionOptInUsers(): Promise<UserSettings[]>;
 }
 
-export class UserSettingsProvider extends EntityMetadataBase implements IUserSettingsProvider {
+export class UserSettingsProvider
+  extends EntityMetadataBase
+  implements IUserSettingsProvider {
   constructor(options: IUserSettingsProviderCreateOptions) {
     super(options);
   }
@@ -135,9 +178,18 @@ export class UserSettingsProvider extends EntityMetadataBase implements IUserSet
   }
 
   async queryContributionOptInUsers(): Promise<UserSettings[]> {
-    const query = new UserSettingsQuery<NoParameters>(Query.UsersOptedInToShareData, {});
-    const metadatas = await this._entities.fixedQueryMetadata(thisProviderType, query);
-    const results = this.deserializeArray<UserSettings>(thisProviderType, metadatas);
+    const query = new UserSettingsQuery<NoParameters>(
+      Query.UsersOptedInToShareData,
+      {}
+    );
+    const metadatas = await this._entities.fixedQueryMetadata(
+      thisProviderType,
+      query
+    );
+    const results = this.deserializeArray<UserSettings>(
+      thisProviderType,
+      metadatas
+    );
     return results;
   }
 }

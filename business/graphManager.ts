@@ -6,9 +6,17 @@
 import moment from 'moment';
 
 import { ICorporateLink } from './corporateLink';
-import { ICacheOptions, ILocalCacheOptions, IPagedCrossOrganizationCacheOptions, isPermissionBetterThan } from '../transitional';
+import {
+  ICacheOptions,
+  ILocalCacheOptions,
+  IPagedCrossOrganizationCacheOptions,
+  isPermissionBetterThan,
+} from '../transitional';
 import { Operations } from './operations';
-import { IGetOrganizationMembersOptions, OrganizationMembershipRoleQuery } from './organization';
+import {
+  IGetOrganizationMembersOptions,
+  OrganizationMembershipRoleQuery,
+} from './organization';
 import { ICrossOrganizationTeamMembership, GitHubTeamRole } from './team';
 import { Repository } from './repository';
 import { GitHubRepositoryPermission } from '../entities/repositoryMetadata/repositoryMetadata';
@@ -38,14 +46,20 @@ export class GraphManager {
     return this;
   }
 
-  async getAllOrganizationMember(githubId: string | number, options?: IGetOrganizationMembersOptions): Promise<any> {
+  async getAllOrganizationMember(
+    githubId: string | number,
+    options?: IGetOrganizationMembersOptions
+  ): Promise<any> {
     const allMembers = await this._operations.getMembers(options);
-    githubId = typeof(githubId) === 'string' ? parseInt(githubId, 10) : githubId;
+    githubId = typeof githubId === 'string' ? parseInt(githubId, 10) : githubId;
     const member = raiseCrossOrganizationSingleResult(allMembers.get(githubId));
     return member;
   }
 
-  async getOrganizationStatusesByName(id: number, optionalRole?: OrganizationMembershipRoleQuery): Promise<any> {
+  async getOrganizationStatusesByName(
+    id: number,
+    optionalRole?: OrganizationMembershipRoleQuery
+  ): Promise<any> {
     const options: IGetOrganizationMembersOptions = {};
     // options['role'] is not typed, need to validate down the call chain to be clean
     if (optionalRole) {
@@ -56,8 +70,11 @@ export class GraphManager {
     return value;
   }
 
-  async getTeamMemberships(id: number, optionalRole?: GitHubTeamRole): Promise<any> {
-    const options: ICrossOrganizationTeamMembership = { };
+  async getTeamMemberships(
+    id: number,
+    optionalRole?: GitHubTeamRole
+  ): Promise<any> {
+    const options: ICrossOrganizationTeamMembership = {};
     if (optionalRole) {
       options.role = optionalRole;
     }
@@ -67,9 +84,12 @@ export class GraphManager {
     return teams;
   }
 
-  async getUserTeams(githubId: string | number, options: ICrossOrganizationTeamMembership): Promise<any[]> {
+  async getUserTeams(
+    githubId: string | number,
+    options: ICrossOrganizationTeamMembership
+  ): Promise<any[]> {
     const everything = await this.getTeamsWithMembers(options);
-    githubId = typeof(githubId) === 'string' ? parseInt(githubId, 10) : githubId;
+    githubId = typeof githubId === 'string' ? parseInt(githubId, 10) : githubId;
     const teams = [];
     for (let i = 0; i < everything.length; i++) {
       const oneTeam = everything[i];
@@ -90,7 +110,9 @@ export class GraphManager {
     return teams;
   }
 
-  getTeamsWithMembers(options: ICrossOrganizationTeamMembership): Promise<any[]> {
+  getTeamsWithMembers(
+    options: ICrossOrganizationTeamMembership
+  ): Promise<any[]> {
     options = options || {};
     if (!options.maxAgeSeconds) {
       options.maxAgeSeconds = 24 * 60 * 60; // One day
@@ -102,7 +124,10 @@ export class GraphManager {
     return this._operations.getTeamsWithMembers(options);
   }
 
-  async getUserReposByTeamMemberships(githubId: string | number, options: ICacheOptions): Promise<IPersonalizedUserAggregateRepositoryPermission[]> {
+  async getUserReposByTeamMemberships(
+    githubId: string | number,
+    options: ICacheOptions
+  ): Promise<IPersonalizedUserAggregateRepositoryPermission[]> {
     // This is an expensive Redis and refresh user if the app is not deployed
     // with the QueryCache: it reads _all_ the teams for the user by the
     // membership APIs. Do not recommend. Did not scale past 5,000 repos well.
@@ -131,7 +156,11 @@ export class GraphManager {
                 // Public repos, ignore teams with pull access
               } else {
                 const team = organization.team(t.id, t);
-                const teamPermission = new TeamRepositoryPermission(team, t, this._operations);
+                const teamPermission = new TeamRepositoryPermission(
+                  team,
+                  t,
+                  this._operations
+                );
                 userTeamPermissions.push(teamPermission);
                 if (isPermissionBetterThan(bestPermission, t.permission)) {
                   bestPermission = t.permission;
@@ -158,7 +187,9 @@ export class GraphManager {
     return personalizedResults;
   }
 
-  getReposWithTeams(options?: IPagedCrossOrganizationCacheOptions): Promise<any> {
+  getReposWithTeams(
+    options?: IPagedCrossOrganizationCacheOptions
+  ): Promise<any> {
     options = options || {};
     if (!options.maxAgeSeconds) {
       options.maxAgeSeconds = 60 * 20 /* 20m per-org collabs list OK */;
@@ -170,7 +201,9 @@ export class GraphManager {
     return this._operations.getRepoTeams(options);
   }
 
-  getReposWithCollaborators(options: IPagedCrossOrganizationCacheOptions): Promise<any> {
+  getReposWithCollaborators(
+    options: IPagedCrossOrganizationCacheOptions
+  ): Promise<any> {
     options = options || {};
     if (!options.maxAgeSeconds) {
       options.maxAgeSeconds = 60 * 20 /* 20m per-org collabs list OK */;
@@ -185,7 +218,8 @@ export class GraphManager {
   private async getCachedLinksMap(
     maxAgeSecondsLocal: number,
     maxAgeSecondsRemote: number,
-    backgroundRefresh: boolean): Promise<Map<string, ICorporateLink>> {
+    backgroundRefresh: boolean
+  ): Promise<Map<string, ICorporateLink>> {
     const operations = this._operations;
     if (!this._linksCache) {
       this._linksCache = {
@@ -196,7 +230,10 @@ export class GraphManager {
     const linksCache = this._linksCache;
     const now = moment();
     const beforeNow = moment().subtract(maxAgeSecondsLocal, 'seconds');
-    let isCacheValid = linksCache.map && linksCache.updated && beforeNow.isAfter(linksCache.updated);
+    let isCacheValid =
+      linksCache.map &&
+      linksCache.updated &&
+      beforeNow.isAfter(linksCache.updated);
     if (isCacheValid) {
       return linksCache.map;
     }
@@ -212,13 +249,17 @@ export class GraphManager {
     const map = new Map();
     for (let i = 0; i < links.length; i++) {
       const link = links[i] as ICorporateLink;
-      let id : string | number = link.thirdPartyId;
+      let id: string | number = link.thirdPartyId;
       if (id) {
         id = parseInt(id, 10);
         map.set(id, links[i]);
       }
     }
-    if (linksCache.map && linksCache.updated && linksCache.updated.isAfter(now)) {
+    if (
+      linksCache.map &&
+      linksCache.updated &&
+      linksCache.updated.isAfter(now)
+    ) {
       // Abandon this update, a newer update has already returned
     } else {
       linksCache.updated = now;
@@ -240,13 +281,19 @@ function raiseCrossOrganizationSingleResult(result, keyProperty?: string) {
   for (const orgName of Object.getOwnPropertyNames(result.orgs)) {
     const orgResult = result.orgs[orgName];
     if (!orgResult[keyProperty]) {
-      throw new Error(`The result for the "${orgName}" org does not have a key property, "${keyProperty}".`);
+      throw new Error(
+        `The result for the "${orgName}" org does not have a key property, "${keyProperty}".`
+      );
     }
     if (orgResult[keyProperty] !== parentValue) {
-      throw new Error(`The result for the "${orgName}" org key property, "${keyProperty}" does not match the parent key value.`);
+      throw new Error(
+        `The result for the "${orgName}" org key property, "${keyProperty}" does not match the parent key value.`
+      );
     }
     if (orgResult.orgs) {
-      throw new Error(`The result for the "${orgName}" org has a nested 'orgs' property, which is not allowed.`);
+      throw new Error(
+        `The result for the "${orgName}" org has a nested 'orgs' property, which is not allowed.`
+      );
     }
     if (!copiedFirst) {
       Object.assign(clone, orgResult);

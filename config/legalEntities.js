@@ -16,6 +16,8 @@ module.exports = function (graphApi) {
 
   return {
     entities: arrayFromString(value || ''),
-    defaultOrganizationEntities: arrayFromString(environmentProvider.get(defaultEnvName) || ''),
+    defaultOrganizationEntities: arrayFromString(
+      environmentProvider.get(defaultEnvName) || ''
+    ),
   };
 };

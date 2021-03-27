@@ -6,11 +6,19 @@
 import azure from 'azure-storage';
 import crypto from 'crypto';
 
+import { IObjectWithDefinedKeys } from '../../lib/entityMetadataProvider/entityMetadataProvider';
 import {
-  IObjectWithDefinedKeys } from '../../lib/entityMetadataProvider/entityMetadataProvider';
-import { EntityMetadataType, IEntityMetadata } from '../../lib/entityMetadataProvider/entityMetadata';
-import { MetadataMappingDefinition, EntityMetadataMappings } from '../../lib/entityMetadataProvider/declarations';
-import { IEntityMetadataFixedQuery, FixedQueryType } from '../../lib/entityMetadataProvider/query';
+  EntityMetadataType,
+  IEntityMetadata,
+} from '../../lib/entityMetadataProvider/entityMetadata';
+import {
+  MetadataMappingDefinition,
+  EntityMetadataMappings,
+} from '../../lib/entityMetadataProvider/declarations';
+import {
+  IEntityMetadataFixedQuery,
+  FixedQueryType,
+} from '../../lib/entityMetadataProvider/query';
 import { TokenGenerator } from './tokenGenerator';
 import { QueryTokensByCorporateID } from './tokenProvider';
 import { Type } from './type';
@@ -43,11 +51,12 @@ const Field: ITokenEntityProperties = {
   warning: 'warning',
   organizationScopes: 'organizationScopes',
   scopes: 'scopes',
-}
+};
 
 const fieldNames = Object.getOwnPropertyNames(Field);
 
-export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntityProperties {
+export class PersonalAccessToken
+  implements IObjectWithDefinedKeys, ITokenEntityProperties {
   private _key: string;
 
   token: string;
@@ -73,7 +82,7 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
     oid,
     scopes,
     organizationScopes,
-  }) : PersonalAccessToken {
+  }): PersonalAccessToken {
     const pat = new PersonalAccessToken();
     pat.corporateId = null;
     pat.description = `AAD oid ${oid} app ${appId} with scopes ${scopes}`;
@@ -90,7 +99,7 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
     displayUsername,
     source,
     scopes,
-  }) : PersonalAccessToken {
+  }): PersonalAccessToken {
     const pat = new PersonalAccessToken();
     pat.corporateId = corporateId;
     pat.description = description;
@@ -102,7 +111,7 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
 
   static CreateNewToken(): PersonalAccessToken {
     const pat = new PersonalAccessToken();
-    const { key,  token } = TokenGenerator.Generate();
+    const { key, token } = TokenGenerator.Generate();
     pat.token = token;
     pat._key = key;
     return pat;
@@ -122,7 +131,11 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
 
   getIdentifier() {
     const concat = this.created + this.token;
-    return crypto.createHash('sha1').update(concat).digest('hex').substring(0, 10);
+    return crypto
+      .createHash('sha1')
+      .update(concat)
+      .digest('hex')
+      .substring(0, 10);
   }
 
   isExpired(): boolean {
@@ -132,7 +145,7 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
       return false;
     }
     const now = new Date();
-    return (this.expires < now);
+    return this.expires < now;
   }
 
   hasScope(scope: string) {
@@ -140,7 +153,7 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
       return false;
     }
     const apis = this.scopes.toLowerCase().split(',');
-    return (apis.includes(scope.toLowerCase()));
+    return apis.includes(scope.toLowerCase());
   }
 
   hasOrganizationScope(orgName: string) {
@@ -151,89 +164,157 @@ export class PersonalAccessToken implements IObjectWithDefinedKeys, ITokenEntity
       return true;
     }
     const orgList = this.organizationScopes.toLowerCase().split(',');
-    return (orgList.includes(orgName.toLowerCase()));
+    return orgList.includes(orgName.toLowerCase());
   }
 }
 
-EntityMetadataMappings.Register(type, MetadataMappingDefinition.EntityInstantiate, () => { return new PersonalAccessToken(); });
-EntityMetadataMappings.Register(type, MetadataMappingDefinition.EntityIdColumnName, Field.token);
+EntityMetadataMappings.Register(
+  type,
+  MetadataMappingDefinition.EntityInstantiate,
+  () => {
+    return new PersonalAccessToken();
+  }
+);
+EntityMetadataMappings.Register(
+  type,
+  MetadataMappingDefinition.EntityIdColumnName,
+  Field.token
+);
 
-EntityMetadataMappings.Register(type, TableSettings.TableMapping, new Map<string, string>([
-  [Field.token, null], // RowKey
-  [Field.active, 'active'],
-  [Field.corporateId, 'owner'],
-  [Field.created, 'entityCreated'],
-  [Field.description, 'description'],
-  [Field.source, 'service'],
-  [Field.organizationScopes, 'orgs'],
-  [Field.expires, 'expires'],
-  [Field.warning, 'warning'],
-  [Field.scopes, 'apis'],
-]));
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableMapping,
+  new Map<string, string>([
+    [Field.token, null], // RowKey
+    [Field.active, 'active'],
+    [Field.corporateId, 'owner'],
+    [Field.created, 'entityCreated'],
+    [Field.description, 'description'],
+    [Field.source, 'service'],
+    [Field.organizationScopes, 'orgs'],
+    [Field.expires, 'expires'],
+    [Field.warning, 'warning'],
+    [Field.scopes, 'apis'],
+  ])
+);
 EntityMetadataMappings.Register(type, TableSettings.TablePossibleDateColumns, [
   Field.created,
   Field.expires,
 ]);
-EntityMetadataMappings.Register(type, TableSettings.TableDefaultTableName, 'settings');
-EntityMetadataMappings.Register(type, TableSettings.TableDefaultFixedPartitionKey, 'apiKey');
-EntityMetadataMappings.Register(type, TableSettings.TableDefaultRowKeyPrefix, 'apiKey');
-EntityMetadataMappings.Register(type, TableSettings.TableDefaultFixedPartitionKeyNoPrefix, true);
-EntityMetadataMappings.RuntimeValidateMappings(type, TableSettings.TableMapping, fieldNames, []);
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableDefaultTableName,
+  'settings'
+);
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableDefaultFixedPartitionKey,
+  'apiKey'
+);
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableDefaultRowKeyPrefix,
+  'apiKey'
+);
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableDefaultFixedPartitionKeyNoPrefix,
+  true
+);
+EntityMetadataMappings.RuntimeValidateMappings(
+  type,
+  TableSettings.TableMapping,
+  fieldNames,
+  []
+);
 
-EntityMetadataMappings.Register(type, MemorySettings.MemoryMapping, new Map<string, string>([
-  [Field.token, Field.token],
-  [Field.active, Field.active],
-  [Field.corporateId, Field.corporateId],
-  [Field.created, Field.created],
-  [Field.description, Field.description],
-  [Field.source, Field.source],
-  [Field.active, Field.active],
-  [Field.organizationScopes, Field.organizationScopes],
-  [Field.expires, Field.expires],
-  [Field.warning, Field.warning],
-  [Field.scopes, Field.scopes],
-]));
-EntityMetadataMappings.RuntimeValidateMappings(type, MemorySettings.MemoryMapping, fieldNames, []);
+EntityMetadataMappings.Register(
+  type,
+  MemorySettings.MemoryMapping,
+  new Map<string, string>([
+    [Field.token, Field.token],
+    [Field.active, Field.active],
+    [Field.corporateId, Field.corporateId],
+    [Field.created, Field.created],
+    [Field.description, Field.description],
+    [Field.source, Field.source],
+    [Field.active, Field.active],
+    [Field.organizationScopes, Field.organizationScopes],
+    [Field.expires, Field.expires],
+    [Field.warning, Field.warning],
+    [Field.scopes, Field.scopes],
+  ])
+);
+EntityMetadataMappings.RuntimeValidateMappings(
+  type,
+  MemorySettings.MemoryMapping,
+  fieldNames,
+  []
+);
 
-EntityMetadataMappings.Register(type, TableSettings.TableQueries, (query: IEntityMetadataFixedQuery, fixedPartitionKey: string) => {
-  switch (query.fixedQueryType) {
-    case FixedQueryType.TokensByCorporateId:
-      const { corporateId } = query as QueryTokensByCorporateID;
-      if (!corporateId) {
-        throw new Error('corporateId required');
-      }
-      return new azure.TableQuery()
-        .where('PartitionKey eq ?', fixedPartitionKey)
-        .and('owner eq ?string?', corporateId);
-    case FixedQueryType.TokensGetAll:
-        return new azure.TableQuery()
-          .where('PartitionKey eq ?', fixedPartitionKey);
-    default:
-      throw new Error(`The fixed query type ${type} is not supported currently by this provider, or is of an unknown type`);
-  }
-});
-
-EntityMetadataMappings.Register(type, MemorySettings.MemoryQueries, (query: IEntityMetadataFixedQuery, allInTypeBin: IEntityMetadata[]) => {
-  function translatedField(type: EntityMetadataType, key: string): string {
-    const mapTeamApprovalObjectToMemoryFields = EntityMetadataMappings.GetDefinition(type, MemorySettings.MemoryMapping, true);
-    const value = mapTeamApprovalObjectToMemoryFields.get(key);
-    if (!value) {
-      throw new Error(`No translation exists for field ${key} in memory provider`);
-    }
-    return value;
-  }
-  const columnCorporateId = translatedField(type, Field.corporateId);
-  switch (query.fixedQueryType) {
-    case FixedQueryType.TokensByCorporateId:
+EntityMetadataMappings.Register(
+  type,
+  TableSettings.TableQueries,
+  (query: IEntityMetadataFixedQuery, fixedPartitionKey: string) => {
+    switch (query.fixedQueryType) {
+      case FixedQueryType.TokensByCorporateId:
         const { corporateId } = query as QueryTokensByCorporateID;
-        return allInTypeBin.filter(entity => {
-          return entity[columnCorporateId] && entity[columnCorporateId] === corporateId;
+        if (!corporateId) {
+          throw new Error('corporateId required');
+        }
+        return new azure.TableQuery()
+          .where('PartitionKey eq ?', fixedPartitionKey)
+          .and('owner eq ?string?', corporateId);
+      case FixedQueryType.TokensGetAll:
+        return new azure.TableQuery().where(
+          'PartitionKey eq ?',
+          fixedPartitionKey
+        );
+      default:
+        throw new Error(
+          `The fixed query type ${type} is not supported currently by this provider, or is of an unknown type`
+        );
+    }
+  }
+);
+
+EntityMetadataMappings.Register(
+  type,
+  MemorySettings.MemoryQueries,
+  (query: IEntityMetadataFixedQuery, allInTypeBin: IEntityMetadata[]) => {
+    function translatedField(type: EntityMetadataType, key: string): string {
+      const mapTeamApprovalObjectToMemoryFields = EntityMetadataMappings.GetDefinition(
+        type,
+        MemorySettings.MemoryMapping,
+        true
+      );
+      const value = mapTeamApprovalObjectToMemoryFields.get(key);
+      if (!value) {
+        throw new Error(
+          `No translation exists for field ${key} in memory provider`
+        );
+      }
+      return value;
+    }
+    const columnCorporateId = translatedField(type, Field.corporateId);
+    switch (query.fixedQueryType) {
+      case FixedQueryType.TokensByCorporateId:
+        const { corporateId } = query as QueryTokensByCorporateID;
+        return allInTypeBin.filter((entity) => {
+          return (
+            entity[columnCorporateId] &&
+            entity[columnCorporateId] === corporateId
+          );
         });
-    case FixedQueryType.TokensGetAll:
-      return allInTypeBin;
-    default:
-      throw new Error('fixed query type not implemented in the memory provider');
-  }});
+      case FixedQueryType.TokensGetAll:
+        return allInTypeBin;
+      default:
+        throw new Error(
+          'fixed query type not implemented in the memory provider'
+        );
+    }
+  }
+);
 
 // Runtime validation of FieldNames
 for (let i = 0; i < fieldNames.length; i++) {

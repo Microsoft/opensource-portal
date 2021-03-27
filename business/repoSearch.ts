@@ -6,9 +6,16 @@
 import querystring from 'querystring';
 
 import { Repository } from './repository';
-import { IPersonalizedUserAggregateRepositoryPermission, GraphManager } from './graphManager';
+import {
+  IPersonalizedUserAggregateRepositoryPermission,
+  GraphManager,
+} from './graphManager';
 import { IRequestTeamPermissions } from '../middleware/github/teamPermissions';
-import { GitHubRepositoryPermission, RepositoryMetadataEntity, RepositoryLockdownState } from '../entities/repositoryMetadata/repositoryMetadata';
+import {
+  GitHubRepositoryPermission,
+  RepositoryMetadataEntity,
+  RepositoryLockdownState,
+} from '../entities/repositoryMetadata/repositoryMetadata';
 import { IRepositoryMetadataProvider } from '../entities/repositoryMetadata/repositoryMetadataProvider';
 import { TeamRepositoryPermission } from './teamRepositoryPermission';
 
@@ -83,7 +90,8 @@ export class RepositorySearch {
       this.specificTeamRepos = options.specificTeamRepos;
     }
 
-    if (options.teamsType && options.userRepos) { // options.repoPermissions) {
+    if (options.teamsType && options.userRepos) {
+      // options.repoPermissions) {
       this.teamsType = options.teamsType;
       this.teamsSubType = options.teamsSubType;
       // this.repoPermissions = options.repoPermissions;
@@ -105,7 +113,8 @@ export class RepositorySearch {
       .filterByType(this.type)
       .filterByPhrase(this.phrase)
       .filterByTeams(this.teamsType)
-      .determinePages()['sortBy' + this.sort]()
+      .determinePages()
+      ['sortBy' + this.sort]()
       .getPage(this.page);
     await this.expandEntitiesForkForks();
     return this;
@@ -121,7 +130,7 @@ export class RepositorySearch {
     if (!this.createdSince) {
       return this;
     }
-    this.repos = this.repos.filter(repo => {
+    this.repos = this.repos.filter((repo) => {
       const createdAt = new Date(repo.created_at);
       return createdAt >= this.createdSince;
     });
@@ -136,7 +145,7 @@ export class RepositorySearch {
     for (const metadata of metadatas) {
       mappedMetadata.set(Number(metadata.repositoryId), metadata);
     }
-    this.repos = this.repos.filter(repo => {
+    this.repos = this.repos.filter((repo) => {
       const id = Number(repo.id);
       switch (this.metadataType) {
         case 'with-metadata': {
@@ -147,15 +156,25 @@ export class RepositorySearch {
         }
         case 'administrator-locked': {
           const metadata = mappedMetadata.get(id);
-          return metadata && metadata.lockdownState === RepositoryLockdownState.AdministratorLocked;
+          return (
+            metadata &&
+            metadata.lockdownState ===
+              RepositoryLockdownState.AdministratorLocked
+          );
         }
         case 'locked': {
           const metadata = mappedMetadata.get(id);
-          return metadata && metadata.lockdownState === RepositoryLockdownState.Locked;
+          return (
+            metadata &&
+            metadata.lockdownState === RepositoryLockdownState.Locked
+          );
         }
         case 'unlocked': {
           const metadata = mappedMetadata.get(id);
-          return metadata && metadata.lockdownState === RepositoryLockdownState.Unlocked;
+          return (
+            metadata &&
+            metadata.lockdownState === RepositoryLockdownState.Unlocked
+          );
         }
         default: {
           throw new Error(`Unsupported metadata type ${this.metadataType}`);
@@ -166,32 +185,45 @@ export class RepositorySearch {
   }
 
   getPage(page): RepositorySearch {
-    this.repos = this.repos.slice((page - 1) * this.pageSize, ((page - 1) * this.pageSize) + this.pageSize);
-    this.pageFirstRepo = 1 + ((page - 1) * this.pageSize);
+    this.repos = this.repos.slice(
+      (page - 1) * this.pageSize,
+      (page - 1) * this.pageSize + this.pageSize
+    );
+    this.pageFirstRepo = 1 + (page - 1) * this.pageSize;
     this.pageLastRepo = this.pageFirstRepo + this.repos.length - 1;
     return this;
   }
 
   sortByStars(): RepositorySearch {
-    this.repos.sort((a, b) => { return b.stargazers_count - a.stargazers_count; });
+    this.repos.sort((a, b) => {
+      return b.stargazers_count - a.stargazers_count;
+    });
     return this;
   }
 
   filterByType(type: string): RepositorySearch {
     let filter = null;
     switch (type) {
-    case 'public':
-      filter = r => { return r.private === false; };
-      break;
-    case 'private':
-      filter = r => { return r.private === true; };
-      break;
-    case 'source':
-      filter = r => { return r.fork === false; };
-      break;
-    case 'fork':
-      filter = r => { return r.fork === true; };
-      break;
+      case 'public':
+        filter = (r) => {
+          return r.private === false;
+        };
+        break;
+      case 'private':
+        filter = (r) => {
+          return r.private === true;
+        };
+        break;
+      case 'source':
+        filter = (r) => {
+          return r.fork === false;
+        };
+        break;
+      case 'fork':
+        filter = (r) => {
+          return r.fork === true;
+        };
+        break;
     }
     if (filter) {
       this.repos = this.repos.filter(filter);
@@ -202,7 +234,9 @@ export class RepositorySearch {
   filterByPhrase(phrase: string): RepositorySearch {
     if (phrase) {
       phrase = phrase.toLowerCase();
-      this.repos = this.repos.filter(r => { return this.repoMatchesPhrase(r, phrase); });
+      this.repos = this.repos.filter((r) => {
+        return this.repoMatchesPhrase(r, phrase);
+      });
     }
     return this;
   }
@@ -211,10 +245,13 @@ export class RepositorySearch {
     if (specificTeamRepos) {
       // Also augment individual repos with permissions information
       const reposAndPermissions = new Map();
-      specificTeamRepos.forEach(specificTeamAndPermission => {
-        reposAndPermissions.set(specificTeamAndPermission.id, specificTeamAndPermission.permissions);
+      specificTeamRepos.forEach((specificTeamAndPermission) => {
+        reposAndPermissions.set(
+          specificTeamAndPermission.id,
+          specificTeamAndPermission.permissions
+        );
       });
-      this.repos = this.repos.filter(repo => {
+      this.repos = this.repos.filter((repo) => {
         const permissions = reposAndPermissions.get(repo.id);
         if (permissions) {
           // TODO: a more official flywheel attach vs adding an uninterfaced property
@@ -236,12 +273,19 @@ export class RepositorySearch {
       switch (teamsType) {
         case 'my': {
           const subType = this.teamsSubType;
-          userRepos.forEach(personalized => {
+          userRepos.forEach((personalized) => {
             const myPermission = personalized.bestComputedPermission;
             let ok = false;
-            if (subType === 'admin' && myPermission === GitHubRepositoryPermission.Admin) {
+            if (
+              subType === 'admin' &&
+              myPermission === GitHubRepositoryPermission.Admin
+            ) {
               ok = true;
-            } else if (subType === 'write' && (myPermission === 'admin' || myPermission === GitHubRepositoryPermission.Push)) {
+            } else if (
+              subType === 'write' &&
+              (myPermission === 'admin' ||
+                myPermission === GitHubRepositoryPermission.Push)
+            ) {
               ok = true;
             } else if (subType === 'read') {
               ok = true;
@@ -253,7 +297,7 @@ export class RepositorySearch {
           break;
         }
       }
-      this.repos = this.repos.filter(repo => {
+      this.repos = this.repos.filter((repo) => {
         return repos.has(Number(repo.id));
       });
     }
@@ -261,12 +305,18 @@ export class RepositorySearch {
   }
 
   filterByLanguageAndRecordAllLanguages(language: string): RepositorySearch {
-    this.repos = this.repos.filter(r => {
+    this.repos = this.repos.filter((r) => {
       // Fill the set with all languages before filtering
       if (r.language) {
         this.observedLanguages.add(r.language);
-        this.observedLanguagesEncoded.set(r.language, querystring.escape(r.language));
-        this.observedLanguagesEncoded.set(r.language.toLowerCase(), querystring.escape(r.language));
+        this.observedLanguagesEncoded.set(
+          r.language,
+          querystring.escape(r.language)
+        );
+        this.observedLanguagesEncoded.set(
+          r.language.toLowerCase(),
+          querystring.escape(r.language)
+        );
       }
       if (!language) {
         return true;
@@ -279,7 +329,9 @@ export class RepositorySearch {
   }
 
   sortByForks() {
-    this.repos.sort((a, b) => { return b.forks_count - a.forks_count; });
+    this.repos.sort((a, b) => {
+      return b.forks_count - a.forks_count;
+    });
     return this;
   }
 
@@ -311,12 +363,14 @@ export class RepositorySearch {
   }
 
   async expandEntitiesForkForks(): Promise<RepositorySearch> {
-    const forks = this.repos.filter(repo => repo.fork === true);
+    const forks = this.repos.filter((repo) => repo.fork === true);
     if (forks.length) {
       for (const fork of forks) {
         try {
           await fork.getDetails();
-        } catch (ignoredError) { /* ignored */ }
+        } catch (ignoredError) {
+          /* ignored */
+        }
       }
     }
     return this;
@@ -325,14 +379,27 @@ export class RepositorySearch {
   private repoMatchesPhrase(repo: Repository, phrase: string): boolean {
     // Poor man's search, starting with just a raw includes search
     // Assumes that phrase is already lowercase to work
-    let string = ((repo.name || '') + (repo.description || '') + (repo.id || '')).toLowerCase();
+    let string = (
+      (repo.name || '') +
+      (repo.description || '') +
+      (repo.id || '')
+    ).toLowerCase();
     return string.includes(phrase);
   }
 
-  private sortDates(fieldName: string, a: Repository, b: Repository): number { // Inverted sort (newest first)
-    const aa = a[fieldName] ? (typeof(a[fieldName]) === 'string' ? new Date(a[fieldName]) : a[fieldName]) : new Date(0);
-    const bb = b[fieldName] ? (typeof(b[fieldName]) === 'string' ? new Date(b[fieldName]) : b[fieldName]) : new Date(0);
-    return aa == bb ? 0 : (aa < bb) ? 1 : -1;
+  private sortDates(fieldName: string, a: Repository, b: Repository): number {
+    // Inverted sort (newest first)
+    const aa = a[fieldName]
+      ? typeof a[fieldName] === 'string'
+        ? new Date(a[fieldName])
+        : a[fieldName]
+      : new Date(0);
+    const bb = b[fieldName]
+      ? typeof b[fieldName] === 'string'
+        ? new Date(b[fieldName])
+        : b[fieldName]
+      : new Date(0);
+    return aa == bb ? 0 : aa < bb ? 1 : -1;
   }
 
   sortByUpdated(): RepositorySearch {
@@ -352,7 +419,9 @@ export class RepositorySearch {
 
   filterPublic(publicOnly: boolean): RepositorySearch {
     if (publicOnly) {
-      this.repos = this.repos.filter(r => { return !r.private; });
+      this.repos = this.repos.filter((r) => {
+        return !r.private;
+      });
     }
     return this;
   }

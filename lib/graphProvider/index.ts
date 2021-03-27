@@ -70,11 +70,18 @@ export interface IGraphProvider {
   getToken(): Promise<string>;
 }
 
-export function CreateGraphProviderInstance(providers: IProviders, config: any, callback) {
+export function CreateGraphProviderInstance(
+  providers: IProviders,
+  config: any,
+  callback
+) {
   const activeDirectoryConfig = config.activeDirectory;
-  const graphConfig = Object.assign({
-    tenantId: activeDirectoryConfig.tenantId,
-  }, config.graph);
+  const graphConfig = Object.assign(
+    {
+      tenantId: activeDirectoryConfig.tenantId,
+    },
+    config.graph
+  );
   if (!graphConfig) {
     return callback(new Error('No graph provider configuration.'));
   }
@@ -99,8 +106,12 @@ export function CreateGraphProviderInstance(providers: IProviders, config: any, 
   }
 
   if (!providerInstance) {
-    return callback(new Error(`The graph provider "${provider}" is not implemented or configured at this time.`));
+    return callback(
+      new Error(
+        `The graph provider "${provider}" is not implemented or configured at this time.`
+      )
+    );
   }
 
   return callback(null, providerInstance);
-};
+}

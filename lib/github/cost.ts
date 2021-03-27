@@ -40,8 +40,14 @@ function addCosts(a, b) {
 
     // Min; though if the refresh happens in the middle this will be off
     if (b.github.remainingApiTokens > 0) {
-      let floor = a.github.remainingApiTokens <= 0 ? b.github.remainingApiTokens : a.github.remainingApiTokens;
-      a.github.remainingApiTokens = Math.min(floor, b.github.remainingApiTokens);
+      let floor =
+        a.github.remainingApiTokens <= 0
+          ? b.github.remainingApiTokens
+          : a.github.remainingApiTokens;
+      a.github.remainingApiTokens = Math.min(
+        floor,
+        b.github.remainingApiTokens
+      );
     }
   }
   return a;

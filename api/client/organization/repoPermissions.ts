@@ -17,26 +17,35 @@ type RequestWithRepo = ReposAppRequest & {
 
 const router = express.Router();
 
-router.get('/', asyncHandler(async (req: RequestWithRepo, res, next) => {
-  const { repository, organization } = req;
-  try {
-    const teamPermissions = await repository.getTeamPermissions();
-    const owners = await organization.getOwners();
-    const { collaborators, outsideCollaborators, memberCollaborators } = await findRepoCollaboratorsExcludingOwners(repository, owners);
-    for (let teamPermission of teamPermissions) {
-      try {
-        teamPermission.resolveTeamMembers();
-      } catch (ignoredError) { /* ignored */ }
+router.get(
+  '/',
+  asyncHandler(async (req: RequestWithRepo, res, next) => {
+    const { repository, organization } = req;
+    try {
+      const teamPermissions = await repository.getTeamPermissions();
+      const owners = await organization.getOwners();
+      const {
+        collaborators,
+        outsideCollaborators,
+        memberCollaborators,
+      } = await findRepoCollaboratorsExcludingOwners(repository, owners);
+      for (let teamPermission of teamPermissions) {
+        try {
+          teamPermission.resolveTeamMembers();
+        } catch (ignoredError) {
+          /* ignored */
+        }
+      }
+      return res.json({
+        teamPermissions: teamPermissions.map((tp) => tp.asJson()),
+        collaborators: collaborators.map((c) => c.asJson()),
+        outsideCollaborators: outsideCollaborators.map((oc) => oc.asJson()),
+        memberCollaborators: memberCollaborators.map((oc) => oc.asJson()),
+      });
+    } catch (error) {
+      return next(jsonError(error));
     }
-    return res.json({
-      teamPermissions: teamPermissions.map(tp => tp.asJson()),
-      collaborators: collaborators.map(c => c.asJson()),
-      outsideCollaborators: outsideCollaborators.map(oc => oc.asJson()),
-      memberCollaborators: memberCollaborators.map(oc => oc.asJson()),
-    });
-  } catch (error) {
-    return next(jsonError(error));
-  }
-}));
+  })
+);
 
 export default router;

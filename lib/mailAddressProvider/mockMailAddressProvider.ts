@@ -3,11 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { IMailAddressProvider } from ".";
+import { IMailAddressProvider } from '.';
 
 export default function createMailAddressProvider() {
   const upnToEmails = new Map();
-  return {
+  return ({
     getAddressFromUpn: async (upn, callback) => {
       if (upnToEmails.has(upn)) {
         return upnToEmails.get(upn);
@@ -17,6 +17,6 @@ export default function createMailAddressProvider() {
     // testability:
     getUpnToEmails: function () {
       return upnToEmails;
-    }
-  } as unknown as IMailAddressProvider;
+    },
+  } as unknown) as IMailAddressProvider;
 }

@@ -18,4 +18,4 @@ export default function (req: ReposAppRequest, res, next) {
   req.app.locals.googleAnalyticsKey = config?.telemetry?.googleAnalyticsKey;
   req.app.locals.viewServices = viewServices;
   return next();
-};
+}

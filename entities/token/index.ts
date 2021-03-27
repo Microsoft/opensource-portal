@@ -15,14 +15,18 @@ export interface ITokenProvider {
   updateToken(token: PersonalAccessToken): Promise<void>;
   deleteToken(token: PersonalAccessToken): Promise<void>;
 
-  queryTokensForCorporateId(thirdPartyId: string): Promise<PersonalAccessToken[]>;
+  queryTokensForCorporateId(
+    thirdPartyId: string
+  ): Promise<PersonalAccessToken[]>;
   getAllTokens(): Promise<PersonalAccessToken[]>;
 }
 
-export interface ITokenProviderCreateOptions extends IEntityMetadataBaseOptions {
-}
+export interface ITokenProviderCreateOptions
+  extends IEntityMetadataBaseOptions {}
 
-export async function createTokenProvider(options: ITokenProviderCreateOptions): Promise<ITokenProvider> {
+export async function createTokenProvider(
+  options: ITokenProviderCreateOptions
+): Promise<ITokenProvider> {
   const provider = new TokenProvider(options);
   await provider.initialize();
   return provider;

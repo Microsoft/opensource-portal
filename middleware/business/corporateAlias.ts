@@ -7,8 +7,11 @@ import { getProviders, ReposAppRequest } from '../../transitional';
 import { IndividualContext } from '../../user';
 import { jsonError } from '../jsonError';
 
-export default async function getCorporateAliasFromActiveContext(req: ReposAppRequest) {
-  const activeContext = (req.individualContext || req.apiContext) as IndividualContext;
+export default async function getCorporateAliasFromActiveContext(
+  req: ReposAppRequest
+) {
+  const activeContext = (req.individualContext ||
+    req.apiContext) as IndividualContext;
   const { graphProvider } = getProviders(req);
   if (!activeContext.corporateIdentity || !activeContext.corporateIdentity.id) {
     throw jsonError('No corporate identity', 401);

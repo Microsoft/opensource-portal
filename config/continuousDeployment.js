@@ -21,7 +21,7 @@ function stripPlaceholders(obj) {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const value = obj[key];
-    if (value && typeof(value) === 'string') {
+    if (value && typeof value === 'string') {
       if (value.startsWith('__') && value.endsWith('__')) {
         delete obj[key];
       }

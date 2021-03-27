@@ -16,14 +16,22 @@ const path = require('path');
 // Resolves the organization configuration data; GITHUB_ORGANIZATIONS_FILE or GITHUB_ORGANIZATIONS_ENVIRONMENT_NAME
 
 const organizationsFileVariableName = 'GITHUB_ORGANIZATIONS_FILE';
-const organizationsEnvironmentVariableName = 'GITHUB_ORGANIZATIONS_ENVIRONMENT_NAME';
-const organizationsEnvironmentTypeVariableName = 'GITHUB_ORGANIZATIONS_ENVIRONMENT_TYPE_NAME';
+const organizationsEnvironmentVariableName =
+  'GITHUB_ORGANIZATIONS_ENVIRONMENT_NAME';
+const organizationsEnvironmentTypeVariableName =
+  'GITHUB_ORGANIZATIONS_ENVIRONMENT_TYPE_NAME';
 
 const defaultEnvironmentTypeName = 'github.organizations';
 
-function getModuleConfiguration(environmentInstances, environmentType, environmentName) {
+function getModuleConfiguration(
+  environmentInstances,
+  environmentType,
+  environmentName
+) {
   if (!environmentInstances) {
-    throw new Error(`${organizationsEnvironmentVariableName} configured but no environment instances were loaded by the painless-config-as-code system`);
+    throw new Error(
+      `${organizationsEnvironmentVariableName} configured but no environment instances were loaded by the painless-config-as-code system`
+    );
   }
   if (!environmentType) {
     throw new Error('No GitHub organizations environment type configured');
@@ -46,34 +54,60 @@ function getModuleConfiguration(environmentInstances, environmentType, environme
 
 module.exports = (graphApi) => {
   const environmentProvider = graphApi.environment;
-  const environmentInstances = environmentProvider ? environmentProvider.environmentInstances : null;
+  const environmentInstances = environmentProvider
+    ? environmentProvider.environmentInstances
+    : null;
   const orgs = [];
   orgs.onboarding = [];
   orgs.ignore = [];
-  const defaultLegalEntities = arrayFromString(environmentProvider.get('GITHUB_ORGANIZATIONS_DEFAULT_LEGAL_ENTITIES'));
-  const defaultTemplates = arrayFromString(environmentProvider.get('GITHUB_ORGANIZATIONS_DEFAULT_TEMPLATES'));
-  const organizationsFile = environmentProvider.get(organizationsFileVariableName);
-  const organizationsEnvironmentName = environmentProvider.get(organizationsEnvironmentVariableName);
-  const organizationsEnvironmentType = environmentProvider.get(organizationsEnvironmentTypeVariableName) || defaultEnvironmentTypeName;
+  const defaultLegalEntities = arrayFromString(
+    environmentProvider.get('GITHUB_ORGANIZATIONS_DEFAULT_LEGAL_ENTITIES')
+  );
+  const defaultTemplates = arrayFromString(
+    environmentProvider.get('GITHUB_ORGANIZATIONS_DEFAULT_TEMPLATES')
+  );
+  const organizationsFile = environmentProvider.get(
+    organizationsFileVariableName
+  );
+  const organizationsEnvironmentName = environmentProvider.get(
+    organizationsEnvironmentVariableName
+  );
+  const organizationsEnvironmentType =
+    environmentProvider.get(organizationsEnvironmentTypeVariableName) ||
+    defaultEnvironmentTypeName;
   if (organizationsFile && organizationsEnvironmentName) {
-    console.warn(`GitHub organization loader: Configuration contains both ${organizationsFileVariableName} and ${organizationsEnvironmentVariableName} values. Only the file will be loaded.`);
+    console.warn(
+      `GitHub organization loader: Configuration contains both ${organizationsFileVariableName} and ${organizationsEnvironmentVariableName} values. Only the file will be loaded.`
+    );
   }
   let contents = null;
   if (organizationsFile) {
     // This will resolve locally; in this we may want to be able to
     // discover through other mechanisms, too.
-    const filename = path.join(typescriptConfig.appDirectory, 'data', organizationsFile);
+    const filename = path.join(
+      typescriptConfig.appDirectory,
+      'data',
+      organizationsFile
+    );
     try {
       const str = fs.readFileSync(filename, 'utf8');
       contents = JSON.parse(str);
     } catch (notFound) {
-      console.warn(`Template definitions could not be loaded from ${filename}: ${notFound.toString()}`);
+      console.warn(
+        `Template definitions could not be loaded from ${filename}: ${notFound.toString()}`
+      );
       throw notFound;
     }
   } else if (organizationsEnvironmentName && !environmentInstances) {
-    throw new Error(`${organizationsEnvironmentVariableName} configured but no environment instances were loaded by the painless-config-as-code system`);
+    throw new Error(
+      `${organizationsEnvironmentVariableName} configured but no environment instances were loaded by the painless-config-as-code system`
+    );
   } else if (organizationsEnvironmentName) {
-    contents = getModuleConfiguration(environmentInstances, organizationsEnvironmentType, organizationsEnvironmentName);
+    contents = getModuleConfiguration(
+      environmentInstances,
+      organizationsEnvironmentType,
+      organizationsEnvironmentName
+    );
   }
 
   if (contents && Array.isArray(contents)) {

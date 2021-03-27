@@ -10,23 +10,26 @@ import { ICorporateLink, LinkOperationSource } from '../../business';
 
 const linkScope = 'link';
 
-const supportedApiVersions = new Set([
-  '2019-10-01',
-]);
+const supportedApiVersions = new Set(['2019-10-01']);
 
 export default async function postLinkApi(req: IApiRequest, res, next) {
   const providers = getProviders(req);
   const { operations } = providers;
   const token = req.apiKeyToken;
-  const apiVersion = (req.query['api-version'] || req.headers['api-version']) as string;
+  const apiVersion = (req.query['api-version'] ||
+    req.headers['api-version']) as string;
   if (!apiVersion || !supportedApiVersions.has(apiVersion)) {
     return next(jsonError('Unsupported API version', 400));
   }
   if (providers.config.api.flags.createLinks !== true) {
-    return next(jsonError('This application is not configured to allow this API', 403));
+    return next(
+      jsonError('This application is not configured to allow this API', 403)
+    );
   }
   if (!token.hasScope(linkScope)) {
-    return next(jsonError('The key is not authorized to use the link API', 401));
+    return next(
+      jsonError('The key is not authorized to use the link API', 401)
+    );
   }
   // CONSIDER: Azure REST API would accept a request header client-request-id and also if True for return-client-request-id, send it back in the response
   const correlationId = req.correlationId;
@@ -70,7 +73,6 @@ export default async function postLinkApi(req: IApiRequest, res, next) {
       res.header('location', newLinkOutcome.resourceLink);
     }
     return res.end();
-
   } catch (linkError) {
     return next(jsonError(linkError));
   }

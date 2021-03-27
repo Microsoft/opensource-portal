@@ -25,9 +25,14 @@ export class ServiceBusMessage implements IQueueMessage {
   #lockedMessage: serviceBus.Azure.ServiceBus.Message = null;
   constructor(message: serviceBus.Azure.ServiceBus.Message) {
     this.#lockedMessage = message;
-    this.brokerProperties = Object.assign({}, message) as unknown as IDictionary<string>;
+    this.brokerProperties = (Object.assign(
+      {},
+      message
+    ) as unknown) as IDictionary<string>;
     if (message.brokerProperties[EnqueuedTimeUtc]) {
-      const originalEventQueued = moment(message.brokerProperties[EnqueuedTimeUtc]);
+      const originalEventQueued = moment(
+        message.brokerProperties[EnqueuedTimeUtc]
+      );
       const now = moment();
       this.enqueuedSecondsAgo = now.diff(originalEventQueued, 'seconds', true);
     }
@@ -65,9 +70,11 @@ export default class ServiceBusQueueProcessor implements IQueueProcessor {
     }
     this.#options = options;
   }
-  
+
   async initialize(): Promise<void> {
-    this.#service = serviceBus.createServiceBusService(this.#options.connectionString);
+    this.#service = serviceBus.createServiceBusService(
+      this.#options.connectionString
+    );
     this.#initialized = true;
   }
 
@@ -76,19 +83,26 @@ export default class ServiceBusQueueProcessor implements IQueueProcessor {
       return Promise.reject(new Error('Provider not initialized'));
     }
     return new Promise((resolve, reject) => {
-      return this.#service.receiveQueueMessage(this.#options.queue, PeekLockOption, (peekError, lockedMessage) => {
-        if ((peekError as unknown) === 'No messages to receive' || (!peekError && !lockedMessage)) {
-          return resolve([]);
-        } else if (peekError) {
-          return reject(peekError);
+      return this.#service.receiveQueueMessage(
+        this.#options.queue,
+        PeekLockOption,
+        (peekError, lockedMessage) => {
+          if (
+            (peekError as unknown) === 'No messages to receive' ||
+            (!peekError && !lockedMessage)
+          ) {
+            return resolve([]);
+          } else if (peekError) {
+            return reject(peekError);
+          }
+          try {
+            const envelope = new ServiceBusMessage(lockedMessage);
+            return resolve([envelope]);
+          } catch (error) {
+            return reject(error);
+          }
         }
-        try {
-          const envelope = new ServiceBusMessage(lockedMessage);
-          return resolve([ envelope ]);
-        } catch (error) {
-          return reject(error);
-        }
-      });
+      );
     });
   }
 
@@ -100,12 +114,15 @@ export default class ServiceBusQueueProcessor implements IQueueProcessor {
       try {
         const assumedType = message as ServiceBusMessage;
         const lockedMessage = assumedType.lockedMessage();
-        return this.#service.deleteMessage(lockedMessage, (error, deleteResponse) => {
-          if (error) {
-            console.warn(deleteResponse || error);
+        return this.#service.deleteMessage(
+          lockedMessage,
+          (error, deleteResponse) => {
+            if (error) {
+              console.warn(deleteResponse || error);
+            }
+            return error ? reject(error) : resolve();
           }
-          return error ? reject(error) : resolve();
-        });
+        );
       } catch (deleteError) {
         return reject(deleteError);
       }

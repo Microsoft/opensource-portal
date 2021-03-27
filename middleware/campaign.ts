@@ -87,7 +87,7 @@ export default function initializeCampaigns(app) {
 
     const data: ICampaignData = getCampaignTelemetry(req) || {};
 
-    const sub = goGithub ? `/${goGithub}`  : '';
+    const sub = goGithub ? `/${goGithub}` : '';
     const base = 'https://github.com/';
 
     let identity = null;
@@ -116,8 +116,14 @@ export default function initializeCampaigns(app) {
         }
         data.uri = uri;
         data.path = req.path;
-        insights.trackEvent({ name: 'ReposCampaignGitHubRedirect', properties: data });
-        insights.trackMetric({ name: 'ReposCampaignGitHubRedirects', value: 1 });
+        insights.trackEvent({
+          name: 'ReposCampaignGitHubRedirect',
+          properties: data,
+        });
+        insights.trackMetric({
+          name: 'ReposCampaignGitHubRedirects',
+          value: 1,
+        });
       }
       return; // response already sent
     }
@@ -128,4 +134,4 @@ export default function initializeCampaigns(app) {
   return {
     redirectGitHubMiddleware: redirectGitHubMiddleware,
   };
-};
+}

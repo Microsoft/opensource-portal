@@ -22,22 +22,27 @@ const router = express.Router();
 // CONSIDER: use a better approach
 const leakyLocalCache = new LeakyLocalCache<number, Team[]>();
 
-router.use('/:teamSlug', asyncHandler(async (req: ReposAppRequest, res, next) => {
-  const { organization } = req;
-  const { teamSlug } = req.params;
-  let team: Team = null;
-  try {
-    team = await organization.getTeamFromSlug(teamSlug);
-    setContextualTeam(req, team);
-    return next();
-  } catch (teamError) {
-    return next(jsonError(teamError));
-  }
-}));
+router.use(
+  '/:teamSlug',
+  asyncHandler(async (req: ReposAppRequest, res, next) => {
+    const { organization } = req;
+    const { teamSlug } = req.params;
+    let team: Team = null;
+    try {
+      team = await organization.getTeamFromSlug(teamSlug);
+      setContextualTeam(req, team);
+      return next();
+    } catch (teamError) {
+      return next(jsonError(teamError));
+    }
+  })
+);
 
 router.use('/:teamSlug', RouteTeam);
 
-async function getTeamsForOrganization(organization: Organization): Promise<Team[]> {
+async function getTeamsForOrganization(
+  organization: Organization
+): Promise<Team[]> {
   const cached = leakyLocalCache.get(organization.id);
   if (cached) {
     return cached;
@@ -53,29 +58,39 @@ async function getTeamsForOrganization(organization: Organization): Promise<Team
   return list;
 }
 
-router.get('/', asyncHandler(async (req: ReposAppRequest, res, next) => {
-  const { organization } = req;
-  const pager = new JsonPager<Team>(req, res);
-  const q: string = (req.query.q ? req.query.q as string : null) || '';
-  try {
-    // TODO: need to do lots of caching to make this awesome!
-    // const repos = await organization.getRepositories();
-    let teams = await getTeamsForOrganization(organization);
-    if (q) {
-      teams = teams.filter(team => {
-        let string = ((team.name || '') + (team.description || '') + (team.id || '') + (team.slug || '')).toLowerCase();
-        return string.includes(q.toLowerCase());
-      });
+router.get(
+  '/',
+  asyncHandler(async (req: ReposAppRequest, res, next) => {
+    const { organization } = req;
+    const pager = new JsonPager<Team>(req, res);
+    const q: string = (req.query.q ? (req.query.q as string) : null) || '';
+    try {
+      // TODO: need to do lots of caching to make this awesome!
+      // const repos = await organization.getRepositories();
+      let teams = await getTeamsForOrganization(organization);
+      if (q) {
+        teams = teams.filter((team) => {
+          let string = (
+            (team.name || '') +
+            (team.description || '') +
+            (team.id || '') +
+            (team.slug || '')
+          ).toLowerCase();
+          return string.includes(q.toLowerCase());
+        });
+      }
+      const slice = pager.slice(teams);
+      return pager.sendJson(
+        slice.map((team) => {
+          return team.asJson(TeamJsonFormat.Augmented);
+        })
+      );
+    } catch (repoError) {
+      console.dir(repoError);
+      return next(jsonError(repoError));
     }
-    const slice = pager.slice(teams);
-    return pager.sendJson(slice.map(team => {
-      return team.asJson(TeamJsonFormat.Augmented);
-    }));
-  } catch (repoError) {
-    console.dir(repoError);
-    return next(jsonError(repoError));
-  }
-}));
+  })
+);
 
 router.use('*', (req, res, next) => {
   return next(jsonError('no API or function available within this team', 404));

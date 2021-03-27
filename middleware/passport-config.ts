@@ -13,7 +13,9 @@ export default function (app, config) {
   const supportedAuth = ['github', 'aad', 'oauth2'];
 
   if (!supportedAuth.includes(config.authentication.scheme)) {
-    throw new Error(`Unsupported primary authentication scheme type "${config.authentication.scheme}"`);
+    throw new Error(
+      `Unsupported primary authentication scheme type "${config.authentication.scheme}"`
+    );
   }
 
   // Always set up GitHub strategies
@@ -26,16 +28,26 @@ export default function (app, config) {
       // @ts-ignore
       if (strategy._oauth2 && strategy._oauth2._authorizeUrl) {
         // @ts-ignore
-        app.set('runtime/passport/github/authorizeUrl', strategy._oauth2._authorizeUrl);
+        app.set(
+          'runtime/passport/github/authorizeUrl',
+          strategy._oauth2._authorizeUrl
+        );
       } else {
-        throw new Error('The GitHub Passport strategy library may have been updated, it no longer contains the expected Authorize URL property within the OAuth2 object.');
+        throw new Error(
+          'The GitHub Passport strategy library may have been updated, it no longer contains the expected Authorize URL property within the OAuth2 object.'
+        );
       }
       // @ts-ignore
       if (strategy._scope && strategy._scopeSeparator) {
         // @ts-ignore
-        app.set('runtime/passport/github/scope', strategy._scope.join(strategy._scopeSeparator));
+        app.set(
+          'runtime/passport/github/scope',
+          strategy._scope.join(strategy._scopeSeparator)
+        );
       } else {
-        throw new Error('The GitHub Passport strategy library may have been updated, it no longer contains the expected Authorize URL property within the OAuth2 object.');
+        throw new Error(
+          'The GitHub Passport strategy library may have been updated, it no longer contains the expected Authorize URL property within the OAuth2 object.'
+        );
       }
     }
   }
@@ -63,11 +75,17 @@ export default function (app, config) {
   serializer.initialize(serializerOptions, app);
 
   app.use((req, res, next) => {
-    if (req.insights && req.insights.properties && config.authentication.scheme === 'aad' && req.user && req.user.azure) {
+    if (
+      req.insights &&
+      req.insights.properties &&
+      config.authentication.scheme === 'aad' &&
+      req.user &&
+      req.user.azure
+    ) {
       req.insights.properties.aadId = req.user.azure.oid;
     }
     next();
   });
 
   return passport;
-};
+}

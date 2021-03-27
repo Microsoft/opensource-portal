@@ -6,7 +6,10 @@
 import express from 'express';
 const router = express.Router();
 
-import { getProviders, RequestWithSystemwidePermissions } from '../../transitional';
+import {
+  getProviders,
+  RequestWithSystemwidePermissions,
+} from '../../transitional';
 import { IndividualContext } from '../../user';
 
 // import { buildConsolidatedMap as buildRecipientMap } from '../../jobs/reports/consolidated';
@@ -24,7 +27,10 @@ interface IRequestWithDigestReports extends RequestWithSystemwidePermissions {
 router.use((req: IRequestWithDigestReports, res, next) => {
   const context = req.individualContext as IndividualContext;
 
-  let upn = context && context.corporateIdentity ? context.corporateIdentity.username : null;
+  let upn =
+    context && context.corporateIdentity
+      ? context.corporateIdentity.username
+      : null;
   if (!upn) {
     return next(new Error('Must have an active corporate link'));
   }
@@ -38,8 +44,15 @@ router.use((req: IRequestWithDigestReports, res, next) => {
   const providers = getProviders(req);
   const config = providers.config;
 
-  const reportConfig = config && config.github && config.github.jobs ? config.github.jobs.reports : {};
-  return next(new Error('Digest report storage is not enabled for this environment. Reports are not available to be viewed on-demand.'));
+  const reportConfig =
+    config && config.github && config.github.jobs
+      ? config.github.jobs.reports
+      : {};
+  return next(
+    new Error(
+      'Digest report storage is not enabled for this environment. Reports are not available to be viewed on-demand.'
+    )
+  );
 
   const availableReports = [];
 
@@ -76,26 +89,29 @@ router.use((req: IRequestWithDigestReports, res, next) => {
   return next();
 });
 
-router.get('/administrator/:id', (req: IRequestWithDigestReports, res, next) => {
-  const id = req.params.id;
-  const availableReports = req.availableReports;
-  for (let i = 0; i < availableReports.length; i++) {
-    const availableReport = availableReports[i];
-    if (availableReport.id === id) {
-      return req.individualContext.webContext.render({
-        view: 'settings/digestReportView',
-        title: availableReport.description,
-        state: {
-          reportTitle: availableReport.description,
-          github: {
-            consolidated: availableReport.report,
+router.get(
+  '/administrator/:id',
+  (req: IRequestWithDigestReports, res, next) => {
+    const id = req.params.id;
+    const availableReports = req.availableReports;
+    for (let i = 0; i < availableReports.length; i++) {
+      const availableReport = availableReports[i];
+      if (availableReport.id === id) {
+        return req.individualContext.webContext.render({
+          view: 'settings/digestReportView',
+          title: availableReport.description,
+          state: {
+            reportTitle: availableReport.description,
+            github: {
+              consolidated: availableReport.report,
+            },
           },
-        },
-      });
+        });
+      }
     }
+    return next(new Error('Not found'));
   }
-  return next(new Error('Not found'));
-});
+);
 
 router.get('/', (req: IRequestWithDigestReports, res) => {
   const availableReports = req.availableReports;

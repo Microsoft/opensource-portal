@@ -35,62 +35,104 @@ describe('encryption', () => {
         };
         let partitionKey = 'partition' + uuidV4();
         let rowKey = 'row' + uuidV4();
-        encryption.decryptEntity(partitionKey, rowKey, entity, sampleEncryptionOptions, (anotherError, roundtripEntity) => {
-          assert.deepEqual(entity, roundtripEntity, 'roundtripEntity is equal to entity');
-        });
+        encryption.decryptEntity(
+          partitionKey,
+          rowKey,
+          entity,
+          sampleEncryptionOptions,
+          (anotherError, roundtripEntity) => {
+            assert.deepEqual(
+              entity,
+              roundtripEntity,
+              'roundtripEntity is equal to entity'
+            );
+          }
+        );
       });
     }),
-    it('should have encryption metadata', () => {
-      let dynamicKeyId = uuidV4();
-      generate32bitKey((error, key) => {
-        let keyEncryptionKeys = {
-          dynamicKeyId: key,
-        };
-        let sampleEncryptionOptions = {
-          keyEncryptionKeyId: dynamicKeyId,
-          encryptedPropertyNames: ['secret', 'superSecret'],
-          keyEncryptionKeys: keyEncryptionKeys,
-        };
-        let secretEntity = {
-          hello: 'world',
-          notSecret: 'this is not a secret',
-          secret: 'this is a secret',
-          superSecret: 'the password is password',
-        };
-        let partitionKey = 'partition' + uuidV4();
-        let rowKey = 'row' + uuidV4();
-        encryption.encryptEntity(partitionKey, rowKey, secretEntity, sampleEncryptionOptions, (error, encryptedEntity) => {
-          assert.isDefined(encryptedEntity['_ClientEncryptionMetadata1'], 'defined encryption metadata');
-          assert.isDefined(encryptedEntity['_ClientEncryptionMetadata2'], 'defined encrypted keys list entry');
+      it('should have encryption metadata', () => {
+        let dynamicKeyId = uuidV4();
+        generate32bitKey((error, key) => {
+          let keyEncryptionKeys = {
+            dynamicKeyId: key,
+          };
+          let sampleEncryptionOptions = {
+            keyEncryptionKeyId: dynamicKeyId,
+            encryptedPropertyNames: ['secret', 'superSecret'],
+            keyEncryptionKeys: keyEncryptionKeys,
+          };
+          let secretEntity = {
+            hello: 'world',
+            notSecret: 'this is not a secret',
+            secret: 'this is a secret',
+            superSecret: 'the password is password',
+          };
+          let partitionKey = 'partition' + uuidV4();
+          let rowKey = 'row' + uuidV4();
+          encryption.encryptEntity(
+            partitionKey,
+            rowKey,
+            secretEntity,
+            sampleEncryptionOptions,
+            (error, encryptedEntity) => {
+              assert.isDefined(
+                encryptedEntity['_ClientEncryptionMetadata1'],
+                'defined encryption metadata'
+              );
+              assert.isDefined(
+                encryptedEntity['_ClientEncryptionMetadata2'],
+                'defined encrypted keys list entry'
+              );
+            }
+          );
+        });
+      }),
+      it('should be able to decrypt itself', () => {
+        let dynamicKeyId = uuidV4();
+        generate32bitKey((error, key) => {
+          let keyEncryptionKeys = {
+            dynamicKeyId: key,
+          };
+          let sampleEncryptionOptions = {
+            keyEncryptionKeyId: dynamicKeyId,
+            encryptedPropertyNames: ['secret', 'superSecret'],
+            keyEncryptionKeys: keyEncryptionKeys,
+          };
+          let secretEntity = {
+            hello: 'world',
+            notSecret: 'this is not a secret',
+            secret: 'this is a secret',
+            superSecret: 'the password is password',
+          };
+          let partitionKey = 'partition' + uuidV4();
+          let rowKey = 'row' + uuidV4();
+          encryption.encryptEntity(
+            partitionKey,
+            rowKey,
+            secretEntity,
+            sampleEncryptionOptions,
+            (error, encryptedEntity) => {
+              assert.notDeepEqual(
+                encryptedEntity,
+                secretEntity,
+                'encryptedEntity is not equal to secretEntity'
+              );
+              encryption.decryptEntity(
+                partitionKey,
+                rowKey,
+                encryptedEntity,
+                sampleEncryptionOptions,
+                (anotherError, roundtripEntity) => {
+                  assert.deepEqual(
+                    roundtripEntity,
+                    secretEntity,
+                    'roundtripEntity is equal to secretEntity'
+                  );
+                }
+              );
+            }
+          );
         });
       });
-    }),
-    it('should be able to decrypt itself', () => {
-      let dynamicKeyId = uuidV4();
-      generate32bitKey((error, key) => {
-        let keyEncryptionKeys = {
-          dynamicKeyId: key,
-        };
-        let sampleEncryptionOptions = {
-          keyEncryptionKeyId: dynamicKeyId,
-          encryptedPropertyNames: ['secret', 'superSecret'],
-          keyEncryptionKeys: keyEncryptionKeys,
-        };
-        let secretEntity = {
-          hello: 'world',
-          notSecret: 'this is not a secret',
-          secret: 'this is a secret',
-          superSecret: 'the password is password',
-        };
-        let partitionKey = 'partition' + uuidV4();
-        let rowKey = 'row' + uuidV4();
-        encryption.encryptEntity(partitionKey, rowKey, secretEntity, sampleEncryptionOptions, (error, encryptedEntity) => {
-          assert.notDeepEqual(encryptedEntity, secretEntity, 'encryptedEntity is not equal to secretEntity');
-          encryption.decryptEntity(partitionKey, rowKey, encryptedEntity, sampleEncryptionOptions, (anotherError, roundtripEntity) => {
-            assert.deepEqual(roundtripEntity, secretEntity, 'roundtripEntity is equal to secretEntity');
-          });
-        });
-      });
-    });
   });
 });

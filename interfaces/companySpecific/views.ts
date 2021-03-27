@@ -7,6 +7,6 @@ export interface IAttachCompanySpecificViews {
   email?: {
     repository?: {
       new?: string;
-    }
-  }
+    };
+  };
 }

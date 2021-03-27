@@ -7,7 +7,12 @@ import express from 'express';
 import asyncHandler from 'express-async-handler';
 const router = express.Router();
 
-import { ReposAppRequest, UserAlertType, ErrorHelper, getProviders } from '../../transitional';
+import {
+  ReposAppRequest,
+  UserAlertType,
+  ErrorHelper,
+  getProviders,
+} from '../../transitional';
 import { UserSettings } from '../../entities/userSettings';
 
 export interface IRequestWithUserSettings extends ReposAppRequest {
@@ -53,20 +58,29 @@ router.use(asyncHandler(getSettings));
 
 router.get('/', view);
 
-router.post('/', asyncHandler(async function (req: IRequestWithUserSettings, res, next) {
-  const isOptIn = !!(req.body.optIn === '1');
-  const currentSetting = req.userSettings.contributionShareOptIn;
-  req.userSettings.contributionShareOptIn = isOptIn;
-  const changed = currentSetting !== isOptIn;
-  if (!changed) {
-    return next(new Error('No change to sharing setting.'));
-  }
-  const { userSettingsProvider } = getProviders(req);
-  await userSettingsProvider.updateUserSettings(req.userSettings);
-  const message = isOptIn ? 'You have opted in to sharing of contribution data.' : 'You have opted out of sharing contribution data.';
-  const title = isOptIn ? 'Opt-in saved' : 'Opt-out';
-  req.individualContext.webContext.saveUserAlert(message, title, UserAlertType.Success);
-  return view(req, res);
-}));
+router.post(
+  '/',
+  asyncHandler(async function (req: IRequestWithUserSettings, res, next) {
+    const isOptIn = !!(req.body.optIn === '1');
+    const currentSetting = req.userSettings.contributionShareOptIn;
+    req.userSettings.contributionShareOptIn = isOptIn;
+    const changed = currentSetting !== isOptIn;
+    if (!changed) {
+      return next(new Error('No change to sharing setting.'));
+    }
+    const { userSettingsProvider } = getProviders(req);
+    await userSettingsProvider.updateUserSettings(req.userSettings);
+    const message = isOptIn
+      ? 'You have opted in to sharing of contribution data.'
+      : 'You have opted out of sharing contribution data.';
+    const title = isOptIn ? 'Opt-in saved' : 'Opt-out';
+    req.individualContext.webContext.saveUserAlert(
+      message,
+      title,
+      UserAlertType.Success
+    );
+    return view(req, res);
+  })
+);
 
 export default router;

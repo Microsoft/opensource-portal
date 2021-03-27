@@ -13,12 +13,15 @@ const defaultCount = 5;
 module.exports = function (graphApi) {
   const environmentProvider = graphApi.environment;
   const newsPackageValue = environmentProvider.get(newsPackageName);
-  const count = parseInt(environmentProvider.get(newsCountName) || defaultCount, 10);
+  const count = parseInt(
+    environmentProvider.get(newsCountName) || defaultCount,
+    10
+  );
 
   let articles = [];
 
   try {
-      if (newsPackageValue) {
+    if (newsPackageValue) {
       const readArticles = require(newsPackageValue);
       if (readArticles && Array.isArray(readArticles)) {
         articles = readArticles;

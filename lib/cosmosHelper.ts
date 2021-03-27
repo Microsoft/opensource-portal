@@ -44,15 +44,25 @@ export default class CosmosHelper {
       throw new Error('options.database required');
     }
     this._client = new CosmosClient({ endpoint, key });
-    this._database = (await this._client.databases.createIfNotExists({ id: this._options.database })).database;
-    this._collection = (await this._database.containers.createIfNotExists({ id: this._options.collection })).container;
-    this._initialized = true;    
+    this._database = (
+      await this._client.databases.createIfNotExists({
+        id: this._options.database,
+      })
+    ).database;
+    this._collection = (
+      await this._database.containers.createIfNotExists({
+        id: this._options.collection,
+      })
+    ).container;
+    this._initialized = true;
   }
 
   async getObject(partitionKey: string, documentId: string): Promise<any> {
     this.throwIfNotInitialized();
     debug(`COSMOS GET OBJECT: ${documentId} from PARTITION: ${partitionKey}`);
-    const response = await this._collection.item(documentId, partitionKey).read();
+    const response = await this._collection
+      .item(documentId, partitionKey)
+      .read();
     if (response.resource) {
       const clone = Object.assign({}, response.resource);
       delete clone._attachments;
@@ -85,7 +95,9 @@ export default class CosmosHelper {
 
   private throwIfNotInitialized() {
     if (!this._initialized) {
-      throw new Error('This provider must be initialized before it can be used');
+      throw new Error(
+        'This provider must be initialized before it can be used'
+      );
     }
   }
 }

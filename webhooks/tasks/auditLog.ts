@@ -14,7 +14,10 @@ import { WebhookProcessor } from '../organizationProcessor';
 import { Operations } from '../../business';
 import { Organization } from '../../business';
 import { AuditLogRecord } from '../../entities/auditLogRecord/auditLogRecord';
-import { MapWebhookEventsToAuditEvents, AuditLogSource } from '../../entities/auditLogRecord';
+import {
+  MapWebhookEventsToAuditEvents,
+  AuditLogSource,
+} from '../../entities/auditLogRecord';
 
 const eventTypes = new Set([
   'membership',
@@ -24,7 +27,11 @@ const eventTypes = new Set([
   'team',
 ]);
 
-async function runAsync(operations: Operations, organization: Organization, data: any) {
+async function runAsync(
+  operations: Operations,
+  organization: Organization,
+  data: any
+) {
   const { auditLogRecordProvider } = operations.providers;
   if (!auditLogRecordProvider) {
     return;
@@ -45,16 +52,19 @@ async function runAsync(operations: Operations, organization: Organization, data
   let undoCandidate = false;
   if (body.changes) {
     const changes = body.changes;
-     record.additionalData.changes = changes;
-     if (changes?.repository?.permissions?.from?.admin === true) {
+    record.additionalData.changes = changes;
+    if (changes?.repository?.permissions?.from?.admin === true) {
       undoCandidate = true;
-     } else if (changes?.permission?.from === 'admin') {
+    } else if (changes?.permission?.from === 'admin') {
       undoCandidate = true;
-     }
+    }
   }
   if (body.scope === 'team' && body.action === 'removed' && body.member) {
     undoCandidate = true;
-  } else if (body.event === 'team' && body.action === 'removed_from_repository') {
+  } else if (
+    body.event === 'team' &&
+    body.action === 'removed_from_repository'
+  ) {
     undoCandidate = true;
   } else if (body.event === 'membership' && body.action === 'removed') {
     undoCandidate = true;
@@ -93,20 +103,21 @@ async function runAsync(operations: Operations, organization: Organization, data
     record.teamName = body.team.name;
   }
   if (body.membership) {
-  //   document.membership = {
-  //     state: body.membership.state,
-  //     role: body.membership.role,
-  //     user: {
-  //       id: body.membership.user.id,
-  //       login: body.membership.user.login,
-  //     },
+    //   document.membership = {
+    //     state: body.membership.state,
+    //     role: body.membership.role,
+    //     user: {
+    //       id: body.membership.user.id,
+    //       login: body.membership.user.login,
+    //     },
   }
   record.inserted = new Date();
   // console.dir(record);
   await auditLogRecordProvider.insertRecord(record);
 }
 
-export default class AuditLogRecorderWebhookProcessor implements WebhookProcessor {
+export default class AuditLogRecorderWebhookProcessor
+  implements WebhookProcessor {
   filter(data: any) {
     let eventType = data.properties.event;
     const has = eventTypes.has(eventType);
@@ -116,7 +127,11 @@ export default class AuditLogRecorderWebhookProcessor implements WebhookProcesso
     return has;
   }
 
-  async run(operations: Operations, organization: Organization, data: any): Promise<boolean> {
+  async run(
+    operations: Operations,
+    organization: Organization,
+    data: any
+  ): Promise<boolean> {
     const result = await runAsync(operations, organization, data);
     return true;
   }

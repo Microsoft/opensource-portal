@@ -33,11 +33,13 @@ export default class TeamSearch {
   search(tags, page, sort): Promise<void> {
     this.page = parseInt(page);
     this.tags = tags;
-    this.sort = sort ? sort.charAt(0).toUpperCase() + sort.slice(1) : 'Alphabet';
-    return this
-      .filterByType(this.set)
+    this.sort = sort
+      ? sort.charAt(0).toUpperCase() + sort.slice(1)
+      : 'Alphabet';
+    return this.filterByType(this.set)
       .filterByPhrase(this.phrase)
-      .determinePages()['sortBy' + this.sort]()
+      .determinePages()
+      ['sortBy' + this.sort]()
       .getPage(this.page);
   }
 
@@ -48,8 +50,11 @@ export default class TeamSearch {
   }
 
   getPage(page: number) {
-    this.teams = this.teams.slice((page - 1) * this.pageSize, ((page - 1) * this.pageSize) + this.pageSize);
-    this.pageFirstTeam = 1 + ((page - 1) * this.pageSize);
+    this.teams = this.teams.slice(
+      (page - 1) * this.pageSize,
+      (page - 1) * this.pageSize + this.pageSize
+    );
+    this.pageFirstTeam = 1 + (page - 1) * this.pageSize;
     this.pageLastTeam = this.pageFirstTeam + this.teams.length - 1;
     return this;
   }
@@ -58,7 +63,7 @@ export default class TeamSearch {
     let filter = null;
     if (setType === 'your' || setType === 'available') {
       const showIfInSet = setType === 'your';
-      filter = t => {
+      filter = (t) => {
         const map = this.yourTeamsMap || new Map();
         return map.has(t.id) === showIfInSet;
       };
@@ -69,10 +74,10 @@ export default class TeamSearch {
     return this;
   }
 
-  filterByPhrase (phrase: string) {
+  filterByPhrase(phrase: string) {
     if (phrase) {
       phrase = phrase.toLowerCase();
-      this.teams = this.teams.filter(t => {
+      this.teams = this.teams.filter((t) => {
         return teamMatchesPhrase(t, phrase);
       });
     }
@@ -98,6 +103,11 @@ export default class TeamSearch {
 function teamMatchesPhrase(team, phrase) {
   // Poor man's search, starting with just a raw includes search
   // Assumes that phrase is already lowercase to work
-  let string = ((team.name || '') + (team.description || '') + (team.id || '') + (team.slug || '')).toLowerCase();
+  let string = (
+    (team.name || '') +
+    (team.description || '') +
+    (team.id || '') +
+    (team.slug || '')
+  ).toLowerCase();
   return string.includes(phrase);
 }

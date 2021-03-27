@@ -11,7 +11,7 @@ export class GraphTeamSync {
   #providers: IProviders;
 
   constructor(providers: IProviders, team: Team) {
-    this.#providers = providers;  
+    this.#providers = providers;
     this.#team = team;
   }
 

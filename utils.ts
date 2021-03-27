@@ -9,7 +9,12 @@ import path = require('path');
 
 import { URL } from 'url';
 
-import { getProviders, IAppSession, IReposError, ReposAppRequest } from './transitional';
+import {
+  getProviders,
+  IAppSession,
+  IReposError,
+  ReposAppRequest,
+} from './transitional';
 import { DateTime } from 'luxon';
 
 const zlib = require('zlib');
@@ -26,7 +31,11 @@ const hardcodedCorporateTimezone = 'America/Los_Angeles';
 export function getOffsetMonthRange(offsetMonths?: number) {
   offsetMonths = offsetMonths || 0;
   const now = new Date();
-  const start = DateTime.fromObject({ year: now.getFullYear(), month: 1 + offsetMonths + now.getMonth(), zone: hardcodedCorporateTimezone });
+  const start = DateTime.fromObject({
+    year: now.getFullYear(),
+    month: 1 + offsetMonths + now.getMonth(),
+    zone: hardcodedCorporateTimezone,
+  });
   const end = start.plus({ months: 1 });
   return { start: start.toJSDate(), end: end.toJSDate() };
 }
@@ -37,7 +46,7 @@ export function daysInMilliseconds(days: number): number {
 
 export function getCurrentQuarter() {
   const now = new Date();
-  const quarter = Math.floor((now.getMonth() / 3));
+  const quarter = Math.floor(now.getMonth() / 3);
   return quarter;
 }
 
@@ -49,17 +58,19 @@ export function getQuarterRange(quarterOfYear: number /* zero-based */) {
 }
 
 export function stringOrNumberAsString(value: any) {
-  if (typeof(value) === 'number') {
+  if (typeof value === 'number') {
     return (value as number).toString();
-  } else if (typeof(value) === 'string') {
+  } else if (typeof value === 'string') {
     return value;
   }
-  const typeName = typeof(value);
-  throw new Error(`Unsupported type ${typeName} for value ${value} (stringOrNumberAsString)`);
+  const typeName = typeof value;
+  throw new Error(
+    `Unsupported type ${typeName} for value ${value} (stringOrNumberAsString)`
+  );
 }
 
 export function stringOrNumberArrayAsStringArray(values: any[]) {
-  return values.map(val => stringOrNumberAsString(val));
+  return values.map((val) => stringOrNumberAsString(val));
 }
 
 export function requireJson(nameFromRoot: string): any {
@@ -75,7 +86,9 @@ export function requireJson(nameFromRoot: string): any {
     throw new Error(`Cannot find JSON file ${file} to read as a module`);
   }
   const content = fs.readFileSync(file, 'utf8');
-  console.warn(`JSON as module (${file}) from project root (NOT TypeScript 'dist' folder)`);
+  console.warn(
+    `JSON as module (${file}) from project root (NOT TypeScript 'dist' folder)`
+  );
   return JSON.parse(content);
 }
 
@@ -84,7 +97,7 @@ export function requireJson(nameFromRoot: string): any {
 // ----------------------------------------------------------------------------
 export function randomInteger(low, high) {
   return Math.floor(Math.random() * (high - low) + low);
-};
+}
 
 export function safeLocalRedirectUrl(path: string) {
   if (!path) {
@@ -108,23 +121,38 @@ interface IStoreReferrerEventDetails {
   redirect?: string;
 }
 
-export function storeReferrer(req: ReposAppRequest, res, redirect, optionalReason) {
+export function storeReferrer(
+  req: ReposAppRequest,
+  res,
+  redirect,
+  optionalReason
+) {
   const { insights } = getProviders(req);
-  const eventDetails : IStoreReferrerEventDetails = {
+  const eventDetails: IStoreReferrerEventDetails = {
     method: 'storeReferrer',
     reason: optionalReason || 'unknown reason',
   };
   const session = req.session as IAppSession;
-  if (session && req.headers && req.headers.referer && session.referer !== undefined && !req.headers.referer.includes('/signout') && !session.referer) {
+  if (
+    session &&
+    req.headers &&
+    req.headers.referer &&
+    session.referer !== undefined &&
+    !req.headers.referer.includes('/signout') &&
+    !session.referer
+  ) {
     session.referer = req.headers.referer;
     eventDetails.referer = req.headers.referer;
   }
   if (redirect) {
     eventDetails.redirect = redirect;
-    insights?.trackEvent({ name: 'RedirectWithReferrer', properties: eventDetails });
+    insights?.trackEvent({
+      name: 'RedirectWithReferrer',
+      properties: eventDetails,
+    });
     res.redirect(redirect);
   }
-};
+}
 
 export function sortByCaseInsensitive(a: string, b: string) {
   let nameA = a.toLowerCase();
@@ -141,9 +169,14 @@ export function sortByCaseInsensitive(a: string, b: string) {
 // ----------------------------------------------------------------------------
 // Session utility: store the original URL
 // ----------------------------------------------------------------------------
-export function storeOriginalUrlAsReferrer(req: express.Request, res: express.Response, redirect: string, optionalReason?: string) {
+export function storeOriginalUrlAsReferrer(
+  req: express.Request,
+  res: express.Response,
+  redirect: string,
+  optionalReason?: string
+) {
   storeOriginalUrlAsVariable(req, res, 'referer', redirect, optionalReason);
-};
+}
 
 export function redirectToReferrer(req, res, url, optionalReason) {
   url = url || '/';
@@ -153,12 +186,21 @@ export function redirectToReferrer(req, res, url, optionalReason) {
     reason: optionalReason || 'unknown reason',
   };
   if (req.insights) {
-    req.insights.trackEvent({ name: 'RedirectToReferrer', properties: eventDetails });
+    req.insights.trackEvent({
+      name: 'RedirectToReferrer',
+      properties: eventDetails,
+    });
   }
   res.redirect(alternateUrl || url);
-};
+}
 
-export function storeOriginalUrlAsVariable(req, res, variable, redirect, optionalReason) {
+export function storeOriginalUrlAsVariable(
+  req,
+  res,
+  variable,
+  redirect,
+  optionalReason
+) {
   const eventDetails = {
     method: 'storeOriginalUrlAsVariable',
     variable: variable,
@@ -171,7 +213,10 @@ export function storeOriginalUrlAsVariable(req, res, variable, redirect, optiona
   }
   if (redirect) {
     if (req.insights) {
-      req.insights.trackEvent({ name: 'RedirectFromOriginalUrl', properties: eventDetails });
+      req.insights.trackEvent({
+        name: 'RedirectFromOriginalUrl',
+        properties: eventDetails,
+      });
     }
     res.redirect(redirect);
   }
@@ -189,12 +234,13 @@ export function popSessionVariable(req, res, variableName) {
 // Provide our own error wrapper and message for an underlying thrown error.
 // Useful for the user-presentable version.
 // ----------------------------------------------------------------------------
-const errorPropertiesToClone = [
-  'stack',
-  'status',
-];
+const errorPropertiesToClone = ['stack', 'status'];
 
-export function wrapError(error, message, userIntendedMessage?: boolean): IReposError {
+export function wrapError(
+  error,
+  message,
+  userIntendedMessage?: boolean
+): IReposError {
   const err: IReposError = new Error(message);
   err.innerError = error;
   if (error) {
@@ -213,7 +259,7 @@ export function wrapError(error, message, userIntendedMessage?: boolean): IRepos
     err.skipLog = true;
   }
   return err;
-};
+}
 
 // ----------------------------------------------------------------------------
 // A destructive removal function for an object. Removes a single key.
@@ -224,7 +270,7 @@ export function stealValue(obj, key) {
     delete obj[key];
     return val;
   }
-};
+}
 
 // ----------------------------------------------------------------------------
 // Given a list of string values, check a string, using a case-insensitive
@@ -238,7 +284,7 @@ export function inListInsensitive(list, value) {
     }
   }
   return false;
-};
+}
 
 // ----------------------------------------------------------------------------
 // Given a list of lowercase values, check whether a value is present.
@@ -251,7 +297,7 @@ export function isInListAnycaseInLowercaseList(list, value) {
     }
   }
   return false;
-};
+}
 
 // ----------------------------------------------------------------------------
 // Given an array of things that have an `id` property, return a hash indexed
@@ -267,7 +313,7 @@ export function arrayToHashById(inputArray) {
     }
   }
   return hash;
-};
+}
 
 // ----------------------------------------------------------------------------
 // Obfuscate a string value, optionally leaving a few characters visible.
@@ -278,7 +324,10 @@ export function obfuscate(value, lastCharactersShowCount) {
   }
   var length = value.length;
   lastCharactersShowCount = lastCharactersShowCount || 0;
-  lastCharactersShowCount = Math.min(Math.round(lastCharactersShowCount), length - 1);
+  lastCharactersShowCount = Math.min(
+    Math.round(lastCharactersShowCount),
+    length - 1
+  );
   var obfuscated = '';
   for (var i = 0; i < length - lastCharactersShowCount; i++) {
     obfuscated += '*';
@@ -287,14 +336,16 @@ export function obfuscate(value, lastCharactersShowCount) {
     obfuscated += value[j];
   }
   return obfuscated;
-};
+}
 
 // ----------------------------------------------------------------------------
 // A very basic breadcrumb stack that ties in to an Express request object.
 // ----------------------------------------------------------------------------
 export function addBreadcrumb(req, breadcrumbTitle, optionalBreadcrumbLink) {
   if (req === undefined || req.baseUrl === undefined) {
-    throw new Error('addBreadcrumb: did you forget to provide a request object instance?');
+    throw new Error(
+      'addBreadcrumb: did you forget to provide a request object instance?'
+    );
   }
   if (!optionalBreadcrumbLink && optionalBreadcrumbLink !== false) {
     optionalBreadcrumbLink = req.baseUrl;
@@ -311,20 +362,20 @@ export function addBreadcrumb(req, breadcrumbTitle, optionalBreadcrumbLink) {
     url: optionalBreadcrumbLink,
   });
   req.breadcrumbs = breadcrumbs;
-};
+}
 
 export function stackSafeCallback(callback, err, item, extraItem) {
   // Works around RangeError: Maximum call stack size exceeded.
   setImmediate(() => {
     callback(err, item, extraItem);
   });
-};
+}
 
 export function createSafeCallbackNoParams(cb) {
   return () => {
     exports.stackSafeCallback(cb);
   };
-};
+}
 
 export function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -359,9 +410,12 @@ export function readFileToText(filename: string): Promise<string> {
   });
 }
 
-export function writeTextToFile(filename: string, stringContent: string): Promise<void> {
+export function writeTextToFile(
+  filename: string,
+  stringContent: string
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    return fs.writeFile(filename, stringContent, 'utf8', error => {
+    return fs.writeFile(filename, stringContent, 'utf8', (error) => {
       if (error) {
         console.warn(`Trouble writing ${filename} ${error}`);
       } else {

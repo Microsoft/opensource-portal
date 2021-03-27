@@ -27,18 +27,34 @@ function retrieveEntity() {
       return callback(error);
     }
     const reducedEntity = encryptionOptions.tableDehydrator(result);
-    decryptEntity(partitionKey, rowKey, reducedEntity, encryptionOptions, (decryptError, entity) => {
-      if (decryptError) {
-        return callback(decryptError);
+    decryptEntity(
+      partitionKey,
+      rowKey,
+      reducedEntity,
+      encryptionOptions,
+      (decryptError, entity) => {
+        if (decryptError) {
+          return callback(decryptError);
+        }
+        const hydrated = encryptionOptions.tableRehydrator(
+          partitionKey,
+          rowKey,
+          entity
+        );
+        return callback(null, hydrated, response);
       }
-      const hydrated = encryptionOptions.tableRehydrator(partitionKey, rowKey, entity);
-      return callback(null, hydrated, response);
-    });
+    );
   });
   tableClient.retrieveEntity.apply(tableClient, args);
 }
 
-function queryEntitiesCallback(encryptionOptions, callback, error, results, headers) {
+function queryEntitiesCallback(
+  encryptionOptions,
+  callback,
+  error,
+  results,
+  headers
+) {
   if (error) {
     error.headers = headers;
     return callback(error);
@@ -49,10 +65,18 @@ function queryEntitiesCallback(encryptionOptions, callback, error, results, head
   const process = async (entities: any[]) => {
     const updatedEntities = [];
     for (const row of entities) {
-      if (row === undefined || row['PartitionKey'] === undefined || row['PartitionKey']._ === undefined) {
+      if (
+        row === undefined ||
+        row['PartitionKey'] === undefined ||
+        row['PartitionKey']._ === undefined
+      ) {
         throw new Error('Entity does not have a PartitionKey.');
       }
-      if (row === undefined || row['RowKey'] === undefined || row['RowKey']._ === undefined) {
+      if (
+        row === undefined ||
+        row['RowKey'] === undefined ||
+        row['RowKey']._ === undefined
+      ) {
         throw new Error('Entity does not have a RowKey.');
       }
       const partitionKey = row['PartitionKey']._;
@@ -63,25 +87,37 @@ function queryEntitiesCallback(encryptionOptions, callback, error, results, head
       } catch (rex) {
         throw rex;
       }
-      const entity = await (new Promise((resolve, reject) => {
-        decryptEntity(partitionKey, rowKey, reducedEntity, encryptionOptions, (decryptError, entity) => {
-          if (decryptError) {
-            return reject(decryptError);
+      const entity = await new Promise((resolve, reject) => {
+        decryptEntity(
+          partitionKey,
+          rowKey,
+          reducedEntity,
+          encryptionOptions,
+          (decryptError, entity) => {
+            if (decryptError) {
+              return reject(decryptError);
+            }
+            const hydrated = encryptionOptions.tableRehydrator(
+              partitionKey,
+              rowKey,
+              entity
+            );
+            return resolve(hydrated);
           }
-          const hydrated = encryptionOptions.tableRehydrator(partitionKey, rowKey, entity);
-          return resolve(hydrated);
-        });
-      }));
+        );
+      });
       updatedEntities.push(entity);
     }
     return updatedEntities;
   };
-  process(results.entries).then(decryptedRows => {
-    results.entries = decryptedRows;
-    return callback(null, results);
-  }).catch(error => {
-    return callback(error);
-  });
+  process(results.entries)
+    .then((decryptedRows) => {
+      results.entries = decryptedRows;
+      return callback(null, results);
+    })
+    .catch((error) => {
+      return callback(error);
+    });
 }
 
 function queryEntities() {
@@ -102,13 +138,23 @@ function insertEntity() {
   const rowKey = entity.RowKey._;
   const reducedEntity = encryptionOptions.tableDehydrator(entity);
   const callback = args[args.length - 1];
-  encryptEntity(partitionKey, rowKey, reducedEntity, encryptionOptions, (encryptError, encryptedEntity) => {
-    if (encryptError) {
-      return callback(encryptError);
+  encryptEntity(
+    partitionKey,
+    rowKey,
+    reducedEntity,
+    encryptionOptions,
+    (encryptError, encryptedEntity) => {
+      if (encryptError) {
+        return callback(encryptError);
+      }
+      args[1] /* entity */ = encryptionOptions.tableRehydrator(
+        partitionKey,
+        rowKey,
+        encryptedEntity
+      );
+      tableClient.insertEntity.apply(tableClient, args);
     }
-    args[1] /* entity */ = encryptionOptions.tableRehydrator(partitionKey, rowKey, encryptedEntity);
-    tableClient.insertEntity.apply(tableClient, args);
-  });
+  );
 }
 
 function replaceEntity() {
@@ -120,37 +166,59 @@ function replaceEntity() {
   const rowKey = entity.RowKey._;
   const reducedEntity = encryptionOptions.tableDehydrator(entity);
   const callback = args[args.length - 1];
-  encryptEntity(partitionKey, rowKey, reducedEntity, encryptionOptions, (encryptError, encryptedEntity) => {
-    if (encryptError) {
-      return callback(encryptError);
+  encryptEntity(
+    partitionKey,
+    rowKey,
+    reducedEntity,
+    encryptionOptions,
+    (encryptError, encryptedEntity) => {
+      if (encryptError) {
+        return callback(encryptError);
+      }
+      args[1] /* entity */ = encryptionOptions.tableRehydrator(
+        partitionKey,
+        rowKey,
+        encryptedEntity
+      );
+      tableClient.replaceEntity.apply(tableClient, args);
     }
-    args[1] /* entity */ = encryptionOptions.tableRehydrator(partitionKey, rowKey, encryptedEntity);
-    tableClient.replaceEntity.apply(tableClient, args);
-  });
+  );
 }
 
 function mergeEntity() {
   const args = Array.prototype.slice.call(arguments);
   const callback = args.pop();
-  return callback(new Error('Entity merge operations are not supported when using table encryption.'));
+  return callback(
+    new Error(
+      'Entity merge operations are not supported when using table encryption.'
+    )
+  );
 }
 
 export default function wrapTableClient(tableClient, encryptionOptions) {
   const wrapped = {
     insertEntity: insertEntity.bind(undefined, tableClient, encryptionOptions),
     mergeEntity: mergeEntity.bind(undefined, tableClient, encryptionOptions),
-    queryEntities: queryEntities.bind(undefined, tableClient, encryptionOptions),
-    replaceEntity: replaceEntity.bind(undefined, tableClient, encryptionOptions),
-    retrieveEntity: retrieveEntity.bind(undefined, tableClient, encryptionOptions),
+    queryEntities: queryEntities.bind(
+      undefined,
+      tableClient,
+      encryptionOptions
+    ),
+    replaceEntity: replaceEntity.bind(
+      undefined,
+      tableClient,
+      encryptionOptions
+    ),
+    retrieveEntity: retrieveEntity.bind(
+      undefined,
+      tableClient,
+      encryptionOptions
+    ),
   };
-  const passthru = [
-    'createTableIfNotExists',
-    'deleteEntity',
-    'doesTableExist',
-  ];
+  const passthru = ['createTableIfNotExists', 'deleteEntity', 'doesTableExist'];
   for (let i = 0; i < passthru.length; i++) {
     const name = passthru[i];
     wrapped[name] = tableClient[name].bind(tableClient);
   }
   return wrapped;
-};
+}

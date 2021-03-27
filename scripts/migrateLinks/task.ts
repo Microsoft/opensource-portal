@@ -18,23 +18,36 @@
 import throat from 'throat';
 
 import app, { IReposJob } from '../../app';
-import { createAndInitializeLinkProviderInstance, ILinkProvider } from '../../lib/linkProviders';
+import {
+  createAndInitializeLinkProviderInstance,
+  ILinkProvider,
+} from '../../lib/linkProviders';
 import { ICorporateLink } from '../../business/corporateLink';
 import { ErrorHelper } from '../../transitional';
 
 const parallelWorkLimit = 5;
 
-export default async function migration({ providers }: IReposJob) : Promise<void> {
+export default async function migration({
+  providers,
+}: IReposJob): Promise<void> {
   // const sourceLinkProvider = providers.linkProvider;
   const config = providers.config;
   const sourceLinkProviderName = 'table';
   console.log(`creating source ${sourceLinkProviderName} provider`);
-  const sourceLinkProvider = await createAndInitializeLinkProviderInstance(providers, config, sourceLinkProviderName);
+  const sourceLinkProvider = await createAndInitializeLinkProviderInstance(
+    providers,
+    config,
+    sourceLinkProviderName
+  );
 
   const destinationLinkProviderName = 'postgres';
 
   console.log(`creating destination ${destinationLinkProviderName} provider`);
-  const destinationLinkProvider = await createAndInitializeLinkProviderInstance(providers, config, destinationLinkProviderName);
+  const destinationLinkProvider = await createAndInitializeLinkProviderInstance(
+    providers,
+    config,
+    destinationLinkProviderName
+  );
 
   console.log('downloading all source links');
   const allSourceLinks = await sourceLinkProvider.getAll();
@@ -49,48 +62,69 @@ export default async function migration({ providers }: IReposJob) : Promise<void
   let errorList = [];
 
   const throttle = throat(parallelWorkLimit);
-  await Promise.all(allSourceLinks.map((sourceLink: ICorporateLink) => throttle(async () => {
-    const existingLink = await getThirdPartyLink(destinationLinkProvider, sourceLink.thirdPartyId);
-    if (existingLink && overwriteDestinationLinks) {
-      console.warn('Removing existing destination link...');
-      await destinationLinkProvider.deleteLink(existingLink);
-    } else if (existingLink && overwriteDestinationLinks === false) {
-      return '$';
-    }
-
-    console.log(`Creating link in destination provider for corp ${sourceLink.corporateUsername} 3p ${sourceLink.thirdPartyUsername}...`);
-    try {
-      if (!sourceLink.corporateId) {
-        // need to use the graph!
-        const id = await getUserIdByUpn(providers.graphProvider, sourceLink.corporateUsername);
-        if (id === null) {
-          throw new Error(`not found user ${sourceLink.corporateUsername} in graph`);
+  await Promise.all(
+    allSourceLinks.map((sourceLink: ICorporateLink) =>
+      throttle(async () => {
+        const existingLink = await getThirdPartyLink(
+          destinationLinkProvider,
+          sourceLink.thirdPartyId
+        );
+        if (existingLink && overwriteDestinationLinks) {
+          console.warn('Removing existing destination link...');
+          await destinationLinkProvider.deleteLink(existingLink);
+        } else if (existingLink && overwriteDestinationLinks === false) {
+          return '$';
         }
-        console.log(`discovered id ${id} for upn ${sourceLink.corporateUsername}`);
-        sourceLink.corporateId = id;
-      }
 
-      const newLinkId = await destinationLinkProvider.createLink(sourceLink);
-      console.log(`OK: new link ID in destination: ${newLinkId}`);
-    } catch (linkCreateError) {
-      console.log('Issue with link:');
-      console.dir(sourceLink);
-      console.warn(linkCreateError);
-      ++errors;
-      errorList.push(linkCreateError);
-      return 'e';
-      // throw linkCreateError;
-    }
-    console.log('[next]');
-    return 'x';
-  })));
+        console.log(
+          `Creating link in destination provider for corp ${sourceLink.corporateUsername} 3p ${sourceLink.thirdPartyUsername}...`
+        );
+        try {
+          if (!sourceLink.corporateId) {
+            // need to use the graph!
+            const id = await getUserIdByUpn(
+              providers.graphProvider,
+              sourceLink.corporateUsername
+            );
+            if (id === null) {
+              throw new Error(
+                `not found user ${sourceLink.corporateUsername} in graph`
+              );
+            }
+            console.log(
+              `discovered id ${id} for upn ${sourceLink.corporateUsername}`
+            );
+            sourceLink.corporateId = id;
+          }
+
+          const newLinkId = await destinationLinkProvider.createLink(
+            sourceLink
+          );
+          console.log(`OK: new link ID in destination: ${newLinkId}`);
+        } catch (linkCreateError) {
+          console.log('Issue with link:');
+          console.dir(sourceLink);
+          console.warn(linkCreateError);
+          ++errors;
+          errorList.push(linkCreateError);
+          return 'e';
+          // throw linkCreateError;
+        }
+        console.log('[next]');
+        return 'x';
+      })
+    )
+  );
 
   console.log('All done with ' + errors + ' errors');
   console.dir(errorList);
   console.log();
 }
 
-async function getThirdPartyLink(linkProvider: ILinkProvider, thirdPartyId: string) : Promise<ICorporateLink> {
+async function getThirdPartyLink(
+  linkProvider: ILinkProvider,
+  thirdPartyId: string
+): Promise<ICorporateLink> {
   try {
     return await linkProvider.getByThirdPartyId(thirdPartyId);
   } catch (error) {
@@ -101,7 +135,7 @@ async function getThirdPartyLink(linkProvider: ILinkProvider, thirdPartyId: stri
   }
 }
 
-async function getUserIdByUpn(graphProvider, upn: string) : Promise<string> {
+async function getUserIdByUpn(graphProvider, upn: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     graphProvider.getUserById(upn, (err, info) => {
       if (err && err['status'] === 404) {
@@ -113,6 +147,5 @@ async function getUserIdByUpn(graphProvider, upn: string) : Promise<string> {
       }
       return resolve(info.id);
     });
-
   });
 }

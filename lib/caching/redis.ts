@@ -64,33 +64,40 @@ export default class RedisHelper implements ICacheHelper {
     }
     const bufferKey = Buffer.from(key);
     return new Promise((resolve, reject) => {
-      this._redis.get(bufferKey as any as string /* Buffer */, (error, buffer) => {
-        if (error) {
-          return process.nextTick(reject, error);
-        }
-        if (buffer === undefined || buffer === null) {
-          return process.nextTick(resolve, buffer);
-        }
-        zlib.gunzip(buffer, (unzipError, unzipped) => {
-          // Fallback if there is a data error (i.e. it's not compressed)
-          if (unzipError && unzipError.errno === zlib.Z_DATA_ERROR) {
-            const originalValue = buffer.toString();
-            return process.nextTick(resolve, originalValue);
-          } else if (unzipError) {
-            return process.nextTick(reject, unzipError);
+      this._redis.get(
+        (bufferKey as any) as string /* Buffer */,
+        (error, buffer) => {
+          if (error) {
+            return process.nextTick(reject, error);
           }
-          try {
-            const unzippedValue = unzipped.toString();
-            return process.nextTick(resolve, unzippedValue);
-          } catch (otherError) {
-            return process.nextTick(reject, otherError);
+          if (buffer === undefined || buffer === null) {
+            return process.nextTick(resolve, buffer);
           }
-        });
-      });
+          zlib.gunzip(buffer, (unzipError, unzipped) => {
+            // Fallback if there is a data error (i.e. it's not compressed)
+            if (unzipError && unzipError.errno === zlib.Z_DATA_ERROR) {
+              const originalValue = buffer.toString();
+              return process.nextTick(resolve, originalValue);
+            } else if (unzipError) {
+              return process.nextTick(reject, unzipError);
+            }
+            try {
+              const unzippedValue = unzipped.toString();
+              return process.nextTick(resolve, unzippedValue);
+            } catch (otherError) {
+              return process.nextTick(reject, otherError);
+            }
+          });
+        }
+      );
     });
   }
 
-  setCompressed(key: string, value: string, options?: ISetCompressedOptions): Promise<void> {
+  setCompressed(
+    key: string,
+    value: string,
+    options?: ISetCompressedOptions
+  ): Promise<void> {
     key = this.key(key);
     const minutesToExpire = options ? options.minutesToExpire : null;
     if (minutesToExpire) {
@@ -109,9 +116,19 @@ export default class RedisHelper implements ICacheHelper {
           return error ? reject(error) : resolve(ok);
         };
         if (minutesToExpire) {
-          this._redis.set(bufferKey as any as string /* Buffer key type to make TypeScript happy */, compressed, 'EX', minutesToExpire * 60, finalize);
+          this._redis.set(
+            (bufferKey as any) as string /* Buffer key type to make TypeScript happy */,
+            compressed,
+            'EX',
+            minutesToExpire * 60,
+            finalize
+          );
         } else {
-          this._redis.set(bufferKey as any as string /* Buffer key type to make TypeScript happy */, compressed, finalize);
+          this._redis.set(
+            (bufferKey as any) as string /* Buffer key type to make TypeScript happy */,
+            compressed,
+            finalize
+          );
         }
       });
     });
@@ -142,17 +159,29 @@ export default class RedisHelper implements ICacheHelper {
     });
   }
 
-  setObjectWithExpire(key: string, object: any, minutesToExpire: number): Promise<void> {
+  setObjectWithExpire(
+    key: string,
+    object: any,
+    minutesToExpire: number
+  ): Promise<void> {
     const json = JSON.stringify(object);
     return this.setWithExpire(key, json, minutesToExpire);
   }
 
-  setObjectCompressedWithExpire(key: string, object: any, minutesToExpire: number): Promise<void> {
+  setObjectCompressedWithExpire(
+    key: string,
+    object: any,
+    minutesToExpire: number
+  ): Promise<void> {
     const json = JSON.stringify(object);
     return this.setCompressedWithExpire(key, json, minutesToExpire);
   }
 
-  setCompressedWithExpire(key: string, value: string, minutesToExpire: number): Promise<void> {
+  setCompressedWithExpire(
+    key: string,
+    value: string,
+    minutesToExpire: number
+  ): Promise<void> {
     if (!minutesToExpire) {
       throw new Error('No minutes to expiration value');
     }
@@ -160,7 +189,11 @@ export default class RedisHelper implements ICacheHelper {
     return this.setCompressed(key, value, options);
   }
 
-  setWithExpire(key: string, value: string, minutesToExpire: number): Promise<void> {
+  setWithExpire(
+    key: string,
+    value: string,
+    minutesToExpire: number
+  ): Promise<void> {
     if (!minutesToExpire) {
       throw new Error('No minutes to expiration value');
     }

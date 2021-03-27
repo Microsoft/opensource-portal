@@ -6,23 +6,33 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 
-import { AddRepositoryPermissionsToRequest, getContextualRepositoryPermissions } from '../../../../middleware/github/repoPermissions';
+import {
+  AddRepositoryPermissionsToRequest,
+  getContextualRepositoryPermissions,
+} from '../../../../middleware/github/repoPermissions';
 import { jsonError } from '../../../../middleware';
 import getCompanySpecificDeployment from '../../../../middleware/companySpecificDeployment';
 import { ReposAppRequest } from '../../../../transitional';
 
 const router = express.Router();
 
-router.get('/permissions', AddRepositoryPermissionsToRequest, asyncHandler(async (req: ReposAppRequest, res, next) => {
-  const permissions = getContextualRepositoryPermissions(req);
-  return res.json(permissions);
-}));
+router.get(
+  '/permissions',
+  AddRepositoryPermissionsToRequest,
+  asyncHandler(async (req: ReposAppRequest, res, next) => {
+    const permissions = getContextualRepositoryPermissions(req);
+    return res.json(permissions);
+  })
+);
 
 const deployment = getCompanySpecificDeployment();
-deployment?.routes?.api?.context?.organization?.repo && deployment?.routes?.api?.context?.organization?.repo(router);
+deployment?.routes?.api?.context?.organization?.repo &&
+  deployment?.routes?.api?.context?.organization?.repo(router);
 
 router.use('*', (req, res, next) => {
-  return next(jsonError(`no API or ${req.method} function available for repo`, 404));
+  return next(
+    jsonError(`no API or ${req.method} function available for repo`, 404)
+  );
 });
 
 export default router;

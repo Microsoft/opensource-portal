@@ -16,11 +16,14 @@ export function isJsonError(error: IErrorJson | string | Error) {
   return error && error['json'] === true;
 }
 
-export function jsonError(error: IErrorJson | string | Error, statusCode?: number): IErrorJson {
+export function jsonError(
+  error: IErrorJson | string | Error,
+  statusCode?: number
+): IErrorJson {
   if (error && error['json'] === true) {
     return error as IErrorJson; // already good to go
   }
-  if (typeof(error) === 'string') {
+  if (typeof error === 'string') {
     error = new Error(error);
   } else if (Array.isArray(error)) {
     error = new Error(error as any);
@@ -36,4 +39,4 @@ export function jsonError(error: IErrorJson | string | Error, statusCode?: numbe
     }
   }
   return error;
-};
+}

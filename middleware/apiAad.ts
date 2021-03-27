@@ -18,22 +18,24 @@ interface IConfigAadApiApprovedAppsOrOids {
     read: {
       links: string;
       maintainers: string;
-    },
+    };
     create: {
       repos: string;
-    },
-  },
+    };
+  };
 }
 
 export default function AadApiMiddleware(req: IApiRequest, res, next) {
-  return validateAadAuthorization(req).then(ok => {
-    return next();
-  }).catch(err => {
-    if ((err as any).immediate === true) {
-      console.warn(`AAD API authorization failed: ${err}`);
-    }
-    return isJsonError(err) ? next(err) : jsonError(err, 500);
-  });
+  return validateAadAuthorization(req)
+    .then((ok) => {
+      return next();
+    })
+    .catch((err) => {
+      if ((err as any).immediate === true) {
+        console.warn(`AAD API authorization failed: ${err}`);
+      }
+      return isJsonError(err) ? next(err) : jsonError(err, 500);
+    });
 }
 
 function callJwtVerify(token: string, options?: jwt.VerifyOptions) {
@@ -48,21 +50,26 @@ function getSigningKeys(header, callback) {
   const client = jwksClient({
     jwksUri: 'https://login.microsoftonline.com/common/discovery/keys',
   });
-  client.getSigningKey(header.kid).then(key => {
-    if (!key) {
-      return callback(new Error('no signing key'));
-    }
-    const signingKey = key['publicKey'] || key['rsaPublicKey']; // typings claim these are not valid properties
-    return callback(null, signingKey);
-  }).catch(err => {
-    return callback(err);
-  });
+  client
+    .getSigningKey(header.kid)
+    .then((key) => {
+      if (!key) {
+        return callback(new Error('no signing key'));
+      }
+      const signingKey = key['publicKey'] || key['rsaPublicKey']; // typings claim these are not valid properties
+      return callback(null, signingKey);
+    })
+    .catch((err) => {
+      return callback(err);
+    });
 }
 
 async function validateAadAuthorization(req: IApiRequest): Promise<void> {
   const { config, insights } = getProviders(req);
 
-  const allowedTenants = (config?.microsoft?.api?.aad?.authorizedTenants || '').split(',');
+  const allowedTenants = (
+    config?.microsoft?.api?.aad?.authorizedTenants || ''
+  ).split(',');
   if (!allowedTenants) {
     throw jsonError('App not configured for authorizing specific tenants', 500);
   }
@@ -72,12 +79,14 @@ async function validateAadAuthorization(req: IApiRequest): Promise<void> {
     throw jsonError('App not configured for authorizing APIs via AAD', 500);
   }
 
-  let approvedApps = config?.microsoft?.api?.aad?.approvedApps as IConfigAadApiApprovedAppsOrOids;
+  let approvedApps = config?.microsoft?.api?.aad
+    ?.approvedApps as IConfigAadApiApprovedAppsOrOids;
   if (!approvedApps) {
     throw jsonError('AAD API app authentication is not configured', 500);
   }
 
-  let approvedOids = config?.microsoft?.api?.aad?.approvedOids as IConfigAadApiApprovedAppsOrOids;
+  let approvedOids = config?.microsoft?.api?.aad
+    ?.approvedOids as IConfigAadApiApprovedAppsOrOids;
   if (!approvedApps) {
     throw jsonError('AAD API OID authentication is not configured', 500);
   }
@@ -126,7 +135,12 @@ async function validateAadAuthorization(req: IApiRequest): Promise<void> {
     // console.dir(payload);
 
     if (!isValidTenant) {
-      throw wrapErrorForImmediateUserError(jsonError(`Issuer ${issuer} is not authorized for this API endpoint`, 403));
+      throw wrapErrorForImmediateUserError(
+        jsonError(
+          `Issuer ${issuer} is not authorized for this API endpoint`,
+          403
+        )
+      );
     }
 
     const { appid, oid } = payload as any;
@@ -134,18 +148,27 @@ async function validateAadAuthorization(req: IApiRequest): Promise<void> {
     const scopes = [];
 
     // Any app that has a valid scope can call the API, but may not be scoped and will error out in the API tier
-    const approvedAppsToCreateRepos = approvedApps?.scopes?.create?.repos ? [...approvedApps.scopes.create.repos.split(',')] : [];
-    const approvedAppsToReadLinks = approvedApps?.scopes?.read?.links ? [...approvedApps.scopes.read.links.split(',')] : [];
-    const approvedAppsToReadMaintainers = approvedApps?.scopes?.read?.maintainers ? [...approvedApps.scopes.read.maintainers.split(',')] : [];
+    const approvedAppsToCreateRepos = approvedApps?.scopes?.create?.repos
+      ? [...approvedApps.scopes.create.repos.split(',')]
+      : [];
+    const approvedAppsToReadLinks = approvedApps?.scopes?.read?.links
+      ? [...approvedApps.scopes.read.links.split(',')]
+      : [];
+    const approvedAppsToReadMaintainers = approvedApps?.scopes?.read
+      ?.maintainers
+      ? [...approvedApps.scopes.read.maintainers.split(',')]
+      : [];
 
-    const approvedOidsToCreateRepos = [...approvedOids?.scopes?.create?.repos?.split(',')];
-    const approvedOidsToReadLinks = [...approvedOids?.scopes?.read?.links?.split(',')];
-
-    const oids = [
-      ...approvedOidsToCreateRepos,
-      ...approvedOidsToReadLinks,
+    const approvedOidsToCreateRepos = [
+      ...approvedOids?.scopes?.create?.repos?.split(','),
     ];
-    const appIds = [ // hacky temporary design for pulling from config
+    const approvedOidsToReadLinks = [
+      ...approvedOids?.scopes?.read?.links?.split(','),
+    ];
+
+    const oids = [...approvedOidsToCreateRepos, ...approvedOidsToReadLinks];
+    const appIds = [
+      // hacky temporary design for pulling from config
       ...approvedAppsToCreateRepos,
       ...approvedAppsToReadLinks,
       ...approvedAppsToReadMaintainers,
@@ -154,7 +177,12 @@ async function validateAadAuthorization(req: IApiRequest): Promise<void> {
     const isOidApproved = oids.includes(oid);
     const notAuthorized = isAppApproved === false && isOidApproved === false;
     if (notAuthorized) {
-      throw wrapErrorForImmediateUserError(jsonError(`App ${appid} and object ID ${oid} is not authorized for this API endpoint`, 403));
+      throw wrapErrorForImmediateUserError(
+        jsonError(
+          `App ${appid} and object ID ${oid} is not authorized for this API endpoint`,
+          403
+        )
+      );
     }
     if (isAppApproved && approvedAppsToCreateRepos.includes(appid)) {
       scopes.push('createRepo');
@@ -187,6 +215,8 @@ async function validateAadAuthorization(req: IApiRequest): Promise<void> {
     });
   } catch (error) {
     insights?.trackException({ exception: error });
-    throw wrapErrorForImmediateUserError(jsonError(`AAD unauthorized: ${error.message || error}`, 403));
+    throw wrapErrorForImmediateUserError(
+      jsonError(`AAD unauthorized: ${error.message || error}`, 403)
+    );
   }
-};
+}

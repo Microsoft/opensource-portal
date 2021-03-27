@@ -6,12 +6,7 @@
 import { GitHubRepositoryPermission } from '../entities/repositoryMetadata/repositoryMetadata';
 import * as common from './common';
 
-const memberPrimaryProperties = [
-  'id',
-  'login',
-  'permissions',
-  'avatar_url',
-];
+const memberPrimaryProperties = ['id', 'login', 'permissions', 'avatar_url'];
 
 export interface IGitHubCollaboratorPermissions {
   admin: boolean;
@@ -30,7 +25,12 @@ export class Collaborator {
 
   constructor(entity: unknown) {
     if (entity) {
-      common.assignKnownFieldsPrefixed(this, entity, 'member', memberPrimaryProperties);
+      common.assignKnownFieldsPrefixed(
+        this,
+        entity,
+        'member',
+        memberPrimaryProperties
+      );
     }
   }
 

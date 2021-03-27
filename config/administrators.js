@@ -7,7 +7,8 @@
 
 const arrayFromString = require('./utils/arrayFromString');
 
-const administratorsEnvironmentName = 'AUTHORIZED_CORPORATE_ADMINISTRATOR_USERNAMES';
+const administratorsEnvironmentName =
+  'AUTHORIZED_CORPORATE_ADMINISTRATOR_USERNAMES';
 
 module.exports = function (graphApi) {
   const environmentProvider = graphApi.environment;

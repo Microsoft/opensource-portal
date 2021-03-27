@@ -19,14 +19,16 @@ export default function (params) {
     });
     next();
   };
-};
+}
 
 function lowerCaser(param) {
   if (typeof param === 'string') {
     return param.toLowerCase();
   }
   if (Array.isArray(param)) {
-    return param.map((item) => { return item.toLowerCase(); });
+    return param.map((item) => {
+      return item.toLowerCase();
+    });
   }
   return param;
 }

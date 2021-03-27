@@ -18,7 +18,10 @@ export default class WcagColorHelper {
     this._hex = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;
   }
 
-  static BestForegroundColorAsHex(backgroundHex: string, defaultForegroundColor?: string) {
+  static BestForegroundColorAsHex(
+    backgroundHex: string,
+    defaultForegroundColor?: string
+  ) {
     const color = new WcagColorHelper(backgroundHex);
     return color.pickBestForegroundAsHex(defaultForegroundColor);
   }
@@ -28,7 +31,9 @@ export default class WcagColorHelper {
   }
 
   pickBestForegroundAsHex(defaultForegroundHexColor?: string) {
-    let foreground = defaultForegroundHexColor ? new WcagColorHelper(defaultForegroundHexColor) : WcagColorHelper.Dark;
+    let foreground = defaultForegroundHexColor
+      ? new WcagColorHelper(defaultForegroundHexColor)
+      : WcagColorHelper.Dark;
     if (this.passes(foreground)) {
       return foreground.asHex();
     }
@@ -46,6 +51,10 @@ export default class WcagColorHelper {
   }
 
   passes(compare: WcagColorHelper) {
-    return WcagColorHelper._checker.isLevelAA(this._hex, compare.asHex(), WcagHardcodedBodyFontSize);
+    return WcagColorHelper._checker.isLevelAA(
+      this._hex,
+      compare.asHex(),
+      WcagHardcodedBodyFontSize
+    );
   }
 }

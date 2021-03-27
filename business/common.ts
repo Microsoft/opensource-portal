@@ -9,19 +9,30 @@ import _ from 'lodash';
 
 import { ICallback, PromiseResolve, PromiseReject } from '../transitional';
 
-export function assignKnownFieldsPrefixed(self, entity, type, primaryProperties, secondaryProperties?, prefix?: string) {
+export function assignKnownFieldsPrefixed(
+  self,
+  entity,
+  type,
+  primaryProperties,
+  secondaryProperties?,
+  prefix?: string
+) {
   prefix = prefix || '_';
   const copy = Object.assign({}, entity);
 
   const directSet = _.pick(copy, primaryProperties);
-  _.keys(directSet).forEach(key => { delete copy[key]; });
+  _.keys(directSet).forEach((key) => {
+    delete copy[key];
+  });
   for (let [key, value] of Object.entries(directSet)) {
     self[`${prefix}${key}`] = value;
   }
 
   if (secondaryProperties) {
     const otherSet = _.pick(copy, secondaryProperties);
-    _.keys(otherSet).forEach(key => { delete copy[key]; });
+    _.keys(otherSet).forEach((key) => {
+      delete copy[key];
+    });
     const otherFieldsKeyName = 'otherFields';
     if (!self[otherFieldsKeyName]) {
       self[otherFieldsKeyName] = {};
@@ -35,13 +46,18 @@ export function assignKnownFieldsPrefixed(self, entity, type, primaryProperties,
     if (!self[extraFieldsKeyName]) {
       self[extraFieldsKeyName] = {};
     }
-    remainingKeys.forEach(key => {
+    remainingKeys.forEach((key) => {
       self[extraFieldsKeyName][key] = copy[key];
     });
   }
 }
 
-export function createPromisedInstances<T>(self, createMethod, resolve: PromiseResolve<T>, reject: PromiseReject) {
+export function createPromisedInstances<T>(
+  self,
+  createMethod,
+  resolve: PromiseResolve<T>,
+  reject: PromiseReject
+) {
   return function (error, entities) {
     if (error) {
       return reject(error);
@@ -53,10 +69,17 @@ export function createPromisedInstances<T>(self, createMethod, resolve: PromiseR
 
 export function createInstances<T>(self, createMethod, entities: T[]): T[] {
   let wrap = createMethod.bind(self);
-  return _.map(entities, wrap) as any as T[];
+  return (_.map(entities, wrap) as any) as T[];
 }
 
-export function returnPromisedInstances<T>(self, createMethod, resolve: PromiseResolve<T>, reject: PromiseReject, entities, error) {
+export function returnPromisedInstances<T>(
+  self,
+  createMethod,
+  resolve: PromiseResolve<T>,
+  reject: PromiseReject,
+  entities,
+  error
+) {
   if (error) {
     return reject(error);
   }
@@ -64,7 +87,11 @@ export function returnPromisedInstances<T>(self, createMethod, resolve: PromiseR
   return resolve(_.map(entities, wrap));
 }
 
-export function createInstancesCallback<T>(self, createMethod, callback: ICallback<T[]>) {
+export function createInstancesCallback<T>(
+  self,
+  createMethod,
+  callback: ICallback<T[]>
+) {
   return function (error, entities) {
     if (error) {
       return callback(error);

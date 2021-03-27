@@ -10,12 +10,18 @@ export interface IApprovalProvider {
   initialize(): Promise<void>;
 
   getApprovalEntity(approvalId: string): Promise<TeamJoinApprovalEntity>;
-  createTeamJoinApprovalEntity(approval: TeamJoinApprovalEntity): Promise<string>;
+  createTeamJoinApprovalEntity(
+    approval: TeamJoinApprovalEntity
+  ): Promise<string>;
   updateTeamApprovalEntity(approval: TeamJoinApprovalEntity): Promise<void>;
 
   queryPendingApprovalsForTeam(id: string): Promise<TeamJoinApprovalEntity[]>;
-  queryPendingApprovalsForTeams(ids: string[]): Promise<TeamJoinApprovalEntity[]>;
-  queryPendingApprovalsForThirdPartyId(thirdPartyId: string): Promise<TeamJoinApprovalEntity[]>;
+  queryPendingApprovalsForTeams(
+    ids: string[]
+  ): Promise<TeamJoinApprovalEntity[]>;
+  queryPendingApprovalsForThirdPartyId(
+    thirdPartyId: string
+  ): Promise<TeamJoinApprovalEntity[]>;
   queryAllApprovals(): Promise<TeamJoinApprovalEntity[]>;
 
   deleteAllRequests(): Promise<void>;

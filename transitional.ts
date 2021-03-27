@@ -185,27 +185,42 @@ export interface IOperationsLockdownFeatureFlags {
 
 export interface IOperationsCentralOperationsToken {
   getCentralOperationsToken(): IPurposefulGetAuthorizationHeader; // IGetAuthorizationHeader ?;
-  getAccountByUsername(username: string, options?: ICacheOptions): Promise<Account>;
+  getAccountByUsername(
+    username: string,
+    options?: ICacheOptions
+  ): Promise<Account>;
 }
 
-export function operationsIsCapable<T>(operations: IOperationsInstance, capability: CoreCapability): operations is IOperationsInstance & T {
+export function operationsIsCapable<T>(
+  operations: IOperationsInstance,
+  capability: CoreCapability
+): operations is IOperationsInstance & T {
   return operations.hasCapability(capability);
 }
 
-export function operationsWithCapability<T>(operations: IOperationsInstance, capability: CoreCapability): T & IOperationsInstance {
+export function operationsWithCapability<T>(
+  operations: IOperationsInstance,
+  capability: CoreCapability
+): T & IOperationsInstance {
   if (operationsIsCapable<T>(operations, capability)) {
     return operations as T & IOperationsInstance;
   }
   return null;
 }
 
-export function throwIfNotCapable<T>(operations: IOperationsInstance, capability: CoreCapability) {
+export function throwIfNotCapable<T>(
+  operations: IOperationsInstance,
+  capability: CoreCapability
+) {
   operations.throwIfNotCompatible(capability);
-  return operations as any as T & IOperationsInstance;
+  return (operations as any) as T & IOperationsInstance;
 }
 
 export function throwIfNotGitHubCapable(operations: IOperationsInstance) {
-  return throwIfNotCapable<IOperationsGitHubRestLibrary & IOperationsInstance>(operations, CoreCapability.GitHubRestApi);
+  return throwIfNotCapable<IOperationsGitHubRestLibrary & IOperationsInstance>(
+    operations,
+    CoreCapability.GitHubRestApi
+  );
 }
 
 export interface IGetAuthorizationHeader {
@@ -251,7 +266,8 @@ export interface IRepositoryGetIssuesOptions extends IPagedCacheOptions {
   milestone?: number | string; // '*'
 }
 
-export interface IPagedCrossOrganizationCacheOptions extends IPagedCacheOptions {
+export interface IPagedCrossOrganizationCacheOptions
+  extends IPagedCacheOptions {
   individualMaxAgeSeconds?: number | null | undefined;
   individualRequestDelay?: number | null | undefined; // FUTURE: could be a function, too
 }
@@ -293,7 +309,10 @@ export interface IDictionary<TValue> {
   [id: string]: TValue;
 }
 
-export const NoCacheNoBackground = { backgroundRefresh: false, maxAgeSeconds: -1 };
+export const NoCacheNoBackground = {
+  backgroundRefresh: false,
+  maxAgeSeconds: -1,
+};
 
 export interface IProviders {
   app: IReposApplication;
@@ -350,7 +369,13 @@ export enum UserAlertType {
 
 export interface IApplicationProfile {
   applicationName: string;
-  customErrorHandlerRender?: (errorView: any, err: Error, req: any, res: any, next: any) => Promise<void>;
+  customErrorHandlerRender?: (
+    errorView: any,
+    err: Error,
+    req: any,
+    res: any,
+    next: any
+  ) => Promise<void>;
   customRoutes?: () => Promise<void>;
   logDependencies: boolean;
   serveClientAssets: boolean;
@@ -366,7 +391,7 @@ export interface RedisOptions {
   detect_buffers: boolean;
   tls?: {
     servername: string;
-  }
+  };
 }
 
 export interface InnerError extends Error {
@@ -436,8 +461,7 @@ export function getProviders(req: ReposAppRequest) {
   return req.app.settings.providers as IProviders;
 }
 
-export interface IReposAppResponse extends Response {
-}
+export interface IReposAppResponse extends Response {}
 
 export interface IReposRequestWithOrganization extends ReposAppRequest {
   organization?: any;
@@ -468,7 +492,9 @@ interface IExistingIdentityError extends Error {
 }
 
 function tooManyLinksError(self, userLinks, callback) {
-  const tooManyLinksError: ITooManyLinksError = new Error(`This account has ${userLinks.length} linked GitHub accounts.`);
+  const tooManyLinksError: ITooManyLinksError = new Error(
+    `This account has ${userLinks.length} linked GitHub accounts.`
+  );
   tooManyLinksError.links = userLinks;
   tooManyLinksError.tooManyLinks = true;
   return callback(tooManyLinksError, self);
@@ -476,22 +502,31 @@ function tooManyLinksError(self, userLinks, callback) {
 
 function existingGitHubIdentityError(self, link, requestUser, callback) {
   const endUser = requestUser.azure.displayName || requestUser.azure.username;
-  const anotherGitHubAccountError: IExistingIdentityError = new Error(`${endUser}, there is a different GitHub account linked to your corporate identity.`);
+  const anotherGitHubAccountError: IExistingIdentityError = new Error(
+    `${endUser}, there is a different GitHub account linked to your corporate identity.`
+  );
   anotherGitHubAccountError.anotherAccount = true;
   anotherGitHubAccountError.link = link;
   anotherGitHubAccountError.skipLog = true;
   return callback(anotherGitHubAccountError, self);
 }
 
-export function SettleToStateValue<T>(promise: Promise<T>): Promise<ISettledValue<T>> {
-  return promise.then(value => {
-    return { value, state: SettledState.Fulfilled };
-  }, reason => {
-    return { reason, state: SettledState.Rejected };
-  });
+export function SettleToStateValue<T>(
+  promise: Promise<T>
+): Promise<ISettledValue<T>> {
+  return promise.then(
+    (value) => {
+      return { value, state: SettledState.Fulfilled };
+    },
+    (reason) => {
+      return { reason, state: SettledState.Rejected };
+    }
+  );
 }
 
-export function permissionsObjectToValue(permissions): GitHubRepositoryPermission {
+export function permissionsObjectToValue(
+  permissions
+): GitHubRepositoryPermission {
   if (permissions.admin === true) {
     return GitHubRepositoryPermission.Admin;
   } else if (permissions.push === true) {
@@ -503,10 +538,15 @@ export function permissionsObjectToValue(permissions): GitHubRepositoryPermissio
   } else if (permissions.pull === true) {
     return GitHubRepositoryPermission.Pull;
   }
-  throw new Error(`Unsupported GitHubRepositoryPermission value inside permissions`);
+  throw new Error(
+    `Unsupported GitHubRepositoryPermission value inside permissions`
+  );
 }
 
-export function isPermissionBetterThan(currentBest: GitHubRepositoryPermission, newConsideration: GitHubRepositoryPermission) {
+export function isPermissionBetterThan(
+  currentBest: GitHubRepositoryPermission,
+  newConsideration: GitHubRepositoryPermission
+) {
   switch (newConsideration) {
     case GitHubRepositoryPermission.Admin:
       return true;
@@ -521,7 +561,10 @@ export function isPermissionBetterThan(currentBest: GitHubRepositoryPermission, 
       }
       break;
     case GitHubRepositoryPermission.Pull:
-      if (currentBest === null || currentBest === GitHubRepositoryPermission.None) {
+      if (
+        currentBest === null ||
+        currentBest === GitHubRepositoryPermission.None
+      ) {
         return true;
       }
       break;
@@ -534,7 +577,9 @@ export function isPermissionBetterThan(currentBest: GitHubRepositoryPermission, 
   return false;
 }
 
-export function MassagePermissionsToGitHubRepositoryPermission(value: string): GitHubRepositoryPermission {
+export function MassagePermissionsToGitHubRepositoryPermission(
+  value: string
+): GitHubRepositoryPermission {
   // collaborator level APIs return a more generic read/write value, lead to some bad caches in the past...
   // TODO: support new collaboration values as they come online for Enterprise Cloud!
   switch (value) {
@@ -551,7 +596,9 @@ export function MassagePermissionsToGitHubRepositoryPermission(value: string): G
     case 'read':
       return GitHubRepositoryPermission.Pull;
     default:
-      throw new Error(`Invalid ${value} GitHub repository permission [massagePermissionsToGitHubRepositoryPermission]`);
+      throw new Error(
+        `Invalid ${value} GitHub repository permission [massagePermissionsToGitHubRepositoryPermission]`
+      );
   }
 }
 
@@ -574,16 +621,28 @@ export class CreateError {
   }
 
   static NotFound(message: string, innerError?: Error): Error {
-    return ErrorHelper.SetInnerError(CreateError.CreateStatusCodeError(404, message), innerError);
+    return ErrorHelper.SetInnerError(
+      CreateError.CreateStatusCodeError(404, message),
+      innerError
+    );
   }
 
-  static ParameterRequired(parameterName: string, optionalDetails?: string): Error {
+  static ParameterRequired(
+    parameterName: string,
+    optionalDetails?: string
+  ): Error {
     const msg = `${parameterName} required`;
-    return CreateError.CreateStatusCodeError(400, optionalDetails ? `${msg}: ${optionalDetails}` : msg);
+    return CreateError.CreateStatusCodeError(
+      400,
+      optionalDetails ? `${msg}: ${optionalDetails}` : msg
+    );
   }
 
   static InvalidParameters(message: string, innerError?: Error): Error {
-    return ErrorHelper.SetInnerError(CreateError.CreateStatusCodeError(400, message), innerError);
+    return ErrorHelper.SetInnerError(
+      CreateError.CreateStatusCodeError(400, message),
+      innerError
+    );
   }
 
   static NotAuthenticated(message: string): Error {
@@ -595,7 +654,10 @@ export class CreateError {
   }
 
   static ServerError(message: string, innerError?: Error): Error {
-    return ErrorHelper.SetInnerError(CreateError.CreateStatusCodeError(500, message), innerError);
+    return ErrorHelper.SetInnerError(
+      CreateError.CreateStatusCodeError(500, message),
+      innerError
+    );
   }
 }
 
@@ -626,7 +688,7 @@ export class ErrorHelper {
 
   public static IsNotFound(error: Error): boolean {
     const statusNumber = ErrorHelper.GetStatus(error);
-    return (statusNumber && statusNumber === 404);
+    return statusNumber && statusNumber === 404;
   }
 
   public static IsConflict(error: Error): boolean {
@@ -655,7 +717,7 @@ export class ErrorHelper {
     }
     if (asAny?.status) {
       const status = asAny.status;
-      const type = typeof (status);
+      const type = typeof status;
       if (type === 'number') {
         return status;
       } else if (type === 'string') {
@@ -672,7 +734,7 @@ export class ErrorHelper {
 export function setImmediateAsync(f: IFunctionPromise<void>): void {
   const safeCall = () => {
     try {
-      f().catch(error => {
+      f().catch((error) => {
         console.warn(`setImmediateAsync caught error: ${error}`);
       });
     } catch (ignoredFailure) {
@@ -698,7 +760,6 @@ export interface IUserAlert {
   context: UserAlertType;
   optionalLink: string;
   optionalCaption: string;
-
 }
 
 interface IAppSessionProperties extends Session {
@@ -719,12 +780,24 @@ export interface IAppSession extends IAppSessionProperties {}
 
 export interface ICustomizedNewRepositoryLogic {
   createContext(req: any): INewRepositoryContext;
-  getAdditionalTelemetryProperties(context: INewRepositoryContext): IDictionary<string>;
+  getAdditionalTelemetryProperties(
+    context: INewRepositoryContext
+  ): IDictionary<string>;
   validateRequest(context: INewRepositoryContext, req: any): Promise<void>;
   stripRequestBody(context: INewRepositoryContext, body: any): void;
-  afterRepositoryCreated(context: INewRepositoryContext, corporateId: string, success: ICreateRepositoryApiResult): Promise<void>;
-  shouldNotifyManager(context: INewRepositoryContext, corporateId: string): boolean;
-  getNewMailViewProperties(context: INewRepositoryContext, repository: Repository): Promise<ICustomizedNewRepoProperties>;
+  afterRepositoryCreated(
+    context: INewRepositoryContext,
+    corporateId: string,
+    success: ICreateRepositoryApiResult
+  ): Promise<void>;
+  shouldNotifyManager(
+    context: INewRepositoryContext,
+    corporateId: string
+  ): boolean;
+  getNewMailViewProperties(
+    context: INewRepositoryContext,
+    repository: Repository
+  ): Promise<ICustomizedNewRepoProperties>;
 }
 
 export interface ICustomizedNewRepoProperties {

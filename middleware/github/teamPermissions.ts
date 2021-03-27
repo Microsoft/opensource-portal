@@ -4,7 +4,11 @@
 //
 
 import { ReposAppRequest } from '../../transitional';
-import { GitHubTeamRole, ITeamMembershipRoleState, Team } from '../../business/team';
+import {
+  GitHubTeamRole,
+  ITeamMembershipRoleState,
+  Team,
+} from '../../business/team';
 import { IndividualContext } from '../../user';
 import { OrganizationMembershipState } from '../../business/organization';
 
@@ -34,7 +38,11 @@ export function getTeamMembershipFromRequest(req: ReposAppRequest) {
   return req[teamStatusCacheKeyName] as IRequestTeamMembershipStatus;
 }
 
-export async function AddTeamMembershipToRequest(req: ReposAppRequest, res, next) {
+export async function AddTeamMembershipToRequest(
+  req: ReposAppRequest,
+  res,
+  next
+) {
   if (req[teamStatusCacheKeyName]) {
     return next();
   }
@@ -42,23 +50,30 @@ export async function AddTeamMembershipToRequest(req: ReposAppRequest, res, next
   if (!team2) {
     return next(new Error('team2 required'));
   }
-  const activeContext = (req.individualContext || req.apiContext) as IndividualContext;
+  const activeContext = (req.individualContext ||
+    req.apiContext) as IndividualContext;
   if (!activeContext.link) {
     const noLink: IRequestTeamMembershipStatus = {
       membershipStatus: null,
       membershipState: null,
       isLinked: false,
-    }
+    };
     req[teamStatusCacheKeyName] = noLink;
   } else {
     const login = activeContext.getGitHubIdentity().username;
     try {
       const statusResult = await team2.getMembershipEfficiently(login);
       const value: IRequestTeamMembershipStatus = {
-        membershipStatus: statusResult && (statusResult as ITeamMembershipRoleState).role ? (statusResult as ITeamMembershipRoleState).role : null,
-        membershipState: statusResult && (statusResult as ITeamMembershipRoleState).state ? (statusResult as ITeamMembershipRoleState).state : null,
+        membershipStatus:
+          statusResult && (statusResult as ITeamMembershipRoleState).role
+            ? (statusResult as ITeamMembershipRoleState).role
+            : null,
+        membershipState:
+          statusResult && (statusResult as ITeamMembershipRoleState).state
+            ? (statusResult as ITeamMembershipRoleState).state
+            : null,
         isLinked: true,
-      }
+      };
       req[teamStatusCacheKeyName] = value;
     } catch (problem) {
       console.dir(problem);
@@ -82,11 +97,16 @@ export function getTeamPermissionsFromRequest(req: ReposAppRequest) {
   return req[teamPermissionsCacheKeyName] as IRequestTeamPermissions;
 }
 
-export async function AddTeamPermissionsToRequest(req: ReposAppRequest, res, next) {
+export async function AddTeamPermissionsToRequest(
+  req: ReposAppRequest,
+  res,
+  next
+) {
   if (req[teamPermissionsCacheKeyName]) {
     return next();
   }
-  const activeContext = (req.individualContext || req.apiContext) as IndividualContext;
+  const activeContext = (req.individualContext ||
+    req.apiContext) as IndividualContext;
   const teamPermissions: IRequestTeamPermissions = {
     isLinked: false,
     allowAdministration: false,
@@ -126,10 +146,10 @@ export async function AddTeamPermissionsToRequest(req: ReposAppRequest, res, nex
       }
     }
   }
-  
+
   // Make a permission decision
   if (teamPermissions.maintainer || teamPermissions.sudo) {
     teamPermissions.allowAdministration = true;
   }
   return next();
-};
+}

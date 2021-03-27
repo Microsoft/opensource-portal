@@ -13,13 +13,19 @@ import { ReposAppRequest, getProviders } from '../../transitional';
 import RouteApp from './app';
 import RouteApps from './apps';
 
-router.use('*', asyncHandler(async function (req: ReposAppRequest, res, next) {
-  const { corporateAdministrationProfile } = getProviders(req);
-  if (corporateAdministrationProfile && corporateAdministrationProfile.urls) {
-    req.individualContext.setInitialViewProperty('_corpAdminUrls', corporateAdministrationProfile.urls);
-  }
-  return next();
-}));
+router.use(
+  '*',
+  asyncHandler(async function (req: ReposAppRequest, res, next) {
+    const { corporateAdministrationProfile } = getProviders(req);
+    if (corporateAdministrationProfile && corporateAdministrationProfile.urls) {
+      req.individualContext.setInitialViewProperty(
+        '_corpAdminUrls',
+        corporateAdministrationProfile.urls
+      );
+    }
+    return next();
+  })
+);
 
 try {
   const dynamicStartupInstance = getCompanySpecificDeployment();

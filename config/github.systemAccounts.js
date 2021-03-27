@@ -9,9 +9,11 @@
 
 const arrayFromString = require('./utils/arrayFromString');
 
-module.exports = graphApi => {
+module.exports = (graphApi) => {
   const environmentProvider = graphApi.environment;
-  const systemAccounts = arrayFromString(environmentProvider.get('GITHUB_SYSTEM_ACCOUNT_USERNAMES'));
+  const systemAccounts = arrayFromString(
+    environmentProvider.get('GITHUB_SYSTEM_ACCOUNT_USERNAMES')
+  );
   return {
     logins: systemAccounts,
   };

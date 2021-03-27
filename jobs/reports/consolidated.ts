@@ -16,8 +16,17 @@
 // any changes to the consolidated format should take into account
 // compatibility.
 
-function addEntityToRecipientMap(map, providerName, recipient, entity, definitions, options) {
-  const filterDefinitionCategories = options.filterDefinitionCategories ? new Set(options.filterDefinitionCategories) : false;
+function addEntityToRecipientMap(
+  map,
+  providerName,
+  recipient,
+  entity,
+  definitions,
+  options
+) {
+  const filterDefinitionCategories = options.filterDefinitionCategories
+    ? new Set(options.filterDefinitionCategories)
+    : false;
   const simplifiedRecipientName = `${recipient.type}:${recipient.value}`;
   let recipientView = map.get(simplifiedRecipientName);
   if (!recipientView) {
@@ -29,11 +38,19 @@ function addEntityToRecipientMap(map, providerName, recipient, entity, definitio
   const issueNames = Object.getOwnPropertyNames(entity.issues);
   for (let i = 0; i < issueNames.length; i++) {
     const issueName = issueNames[i];
-    if (recipient.specific && recipient.specific.issueNames && !recipient.specific.issueNames.has(issueName)) {
+    if (
+      recipient.specific &&
+      recipient.specific.issueNames &&
+      !recipient.specific.issueNames.has(issueName)
+    ) {
       continue;
     }
     const definition = definitions[issueName];
-    if (filterDefinitionCategories && definition.category && !filterDefinitionCategories.has(definition.category)) {
+    if (
+      filterDefinitionCategories &&
+      definition.category &&
+      !filterDefinitionCategories.has(definition.category)
+    ) {
       continue;
     }
     if (recipient.reasons) {
@@ -61,7 +78,10 @@ function addEntityToRecipientMap(map, providerName, recipient, entity, definitio
     }
     let entry = recipientView[issueName];
     const entityIssue = entity.issues[issueName];
-    const specificItems = entity.specific && entity.specific.issueItems ? entity.specific.issueItems : null;
+    const specificItems =
+      entity.specific && entity.specific.issueItems
+        ? entity.specific.issueItems
+        : null;
     if (definition.hasTable) {
       fillFrom(entityIssue, 'rows', entry.table, entity, specificItems);
     }
@@ -73,14 +93,22 @@ function addEntityToRecipientMap(map, providerName, recipient, entity, definitio
 
 function fillFrom(object, property, target, entity, specificItems) {
   const source = object[property];
-  if (source && Array.isArray(source) && Array.isArray(target[property]) && source.length) {
+  if (
+    source &&
+    Array.isArray(source) &&
+    Array.isArray(target[property]) &&
+    source.length
+  ) {
     const targetArray = target[property];
     for (let i = 0; i < source.length; i++) {
       const sourceItem = source[i];
       if (specificItems && !specificItems.has(sourceItem)) {
         continue;
       }
-      let lineItem = typeof(source[i]) === 'object' ? Object.assign({}, sourceItem) : { text: sourceItem };
+      let lineItem =
+        typeof source[i] === 'object'
+          ? Object.assign({}, sourceItem)
+          : { text: sourceItem };
       if (!lineItem.entityName && entity.name) {
         lineItem.entityName = entity.name;
       }
@@ -115,7 +143,10 @@ function identifyAdditionalRecipients(entity, recipients) {
             let found = null;
             for (let l = 0; l < recipients.length; l++) {
               const existing = recipients[l];
-              if (existing.type === recipient.type && existing.value === recipient.value) {
+              if (
+                existing.type === recipient.type &&
+                existing.value === recipient.value
+              ) {
                 found = existing;
                 break;
               }
@@ -130,12 +161,15 @@ function identifyAdditionalRecipients(entity, recipients) {
               const combined = `:${recipient.type}:${recipient.value}:`;
               let entry = additionalEntries.get(combined);
               if (!entry) {
-                entry = Object.assign({
-                  specific: {
-                    issueNames: new Set(),
-                    issueItems: new Set(),
+                entry = Object.assign(
+                  {
+                    specific: {
+                      issueNames: new Set(),
+                      issueItems: new Set(),
+                    },
                   },
-                }, item.additionalRecipients[k]);
+                  item.additionalRecipients[k]
+                );
                 additionalEntries.set(combined, entry);
                 additionals.push(entry);
               }
@@ -171,7 +205,9 @@ function deduplicateRecipients(recipients) {
       for (let j = 0; j < recipient.reasons.length; j++) {
         deduplicatedEntry.reasons.add(recipient.reasons[j]);
       }
-      deduplicatedEntry.clone.reasons = Array.from(deduplicatedEntry.reasons.values());
+      deduplicatedEntry.clone.reasons = Array.from(
+        deduplicatedEntry.reasons.values()
+      );
     }
   }
   return r;
@@ -184,7 +220,7 @@ export function buildConsolidatedMap(consolidated, options?) {
   for (let i = 0; i < providerNames.length; i++) {
     const providerName = providerNames[i];
     const dataset = consolidated[providerName];
-    if (typeof (dataset) !== 'object' || providerName === 'metadata') {
+    if (typeof dataset !== 'object' || providerName === 'metadata') {
       continue;
     }
     const definitions = {};
@@ -196,14 +232,26 @@ export function buildConsolidatedMap(consolidated, options?) {
     if (dataset.entities && dataset.entities.length) {
       for (let j = 0; j < dataset.entities.length; j++) {
         const entity = dataset.entities[j];
-        const recipients = deduplicateRecipients(entity && entity.recipients ? entity.recipients : []);
-        const additionalRecipients = identifyAdditionalRecipients(entity, recipients);
+        const recipients = deduplicateRecipients(
+          entity && entity.recipients ? entity.recipients : []
+        );
+        const additionalRecipients = identifyAdditionalRecipients(
+          entity,
+          recipients
+        );
         const allRecipients = recipients.concat(additionalRecipients);
         const entityClone = Object.assign({}, entity);
         delete entityClone.recipients;
         for (let k = 0; k < allRecipients.length; k++) {
           const recipient = allRecipients[k];
-          addEntityToRecipientMap(providerByName, providerName, recipient, entityClone, definitions, options);
+          addEntityToRecipientMap(
+            providerByName,
+            providerName,
+            recipient,
+            entityClone,
+            definitions,
+            options
+          );
         }
       }
     }
@@ -211,7 +259,7 @@ export function buildConsolidatedMap(consolidated, options?) {
       const values = providerByName.get(recipient);
       if (!byRecipient.has(recipient)) {
         const recipientEntries = [];
-        (recipientEntries as any as IReasonsSet).reasons = new Set();
+        ((recipientEntries as any) as IReasonsSet).reasons = new Set();
         byRecipient.set(recipient, recipientEntries);
       }
       const entry = byRecipient.get(recipient);
@@ -255,5 +303,5 @@ interface IEntry {
   };
   list?: {
     listItems: any[];
-  }
+  };
 }

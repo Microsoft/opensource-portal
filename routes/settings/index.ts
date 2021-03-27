@@ -20,24 +20,31 @@ import campaignsRoute from './campaigns';
 
 router.use(asyncHandler(AddLinkToRequest));
 
-router.get('/', asyncHandler( async (req: ReposAppRequest, res) => {
-  const providers = getProviders(req);
-  const link = req.individualContext.link;
-  let legalContactInformation = null;
-  try {
-    if (providers.corporateContactProvider) {
-      legalContactInformation = await providers.corporateContactProvider.lookupContacts(link.corporateUsername);
+router.get(
+  '/',
+  asyncHandler(async (req: ReposAppRequest, res) => {
+    const providers = getProviders(req);
+    const link = req.individualContext.link;
+    let legalContactInformation = null;
+    try {
+      if (providers.corporateContactProvider) {
+        legalContactInformation = await providers.corporateContactProvider.lookupContacts(
+          link.corporateUsername
+        );
+      }
+    } catch (ignoredError) {
+      /* ignored */
     }
-  } catch (ignoredError) { /* ignored */ }
-  req.individualContext.webContext.render({
-    view: 'settings',
-    title: 'Settings',
-    state: {
-      legalContactInformation,
-      link,
-    },
-  });
-}));
+    req.individualContext.webContext.render({
+      view: 'settings',
+      title: 'Settings',
+      state: {
+        legalContactInformation,
+        link,
+      },
+    });
+  })
+);
 
 router.use('/approvals', approvalsRoute);
 router.use('/authorizations', authorizationsRoute);

@@ -39,7 +39,9 @@ async function setup() {
   const newPassword = await prompt.password('new password: ');
 
   try {
-    await client.query(escape(`create user ${newUsername} with password %L`, newPassword));
+    await client.query(
+      escape(`create user ${newUsername} with password %L`, newPassword)
+    );
   } catch (createUserError) {
     console.log(createUserError.message);
   }
@@ -85,12 +87,14 @@ async function setup() {
 }
 
 function initialize() {
-  return setup().then(ok => {
-    console.log('OK');
-    process.exit(0);
-  }).catch(error => {
-    console.error(error);
-    console.dir(error);
-    process.exit(1);
-  });
+  return setup()
+    .then((ok) => {
+      console.log('OK');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error(error);
+      console.dir(error);
+      process.exit(1);
+    });
 }

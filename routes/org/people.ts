@@ -9,7 +9,7 @@ const router = express.Router();
 
 import RoutePeopleSearch from '../peopleSearch';
 
-router.use(function (req:ReposAppRequest, res, next) {
+router.use(function (req: ReposAppRequest, res, next) {
   req.individualContext.webContext.pushBreadcrumb('People');
   req.reposContext = {
     section: 'people',

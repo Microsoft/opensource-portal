@@ -6,10 +6,7 @@
 import * as common from './common';
 import { GitHubRepositoryPermission } from '../entities/repositoryMetadata/repositoryMetadata';
 
-const repoPermissionProperties = [
-  'permission',
-  'user',
-];
+const repoPermissionProperties = ['permission', 'user'];
 
 export enum GitHubCollaboratorPermissionLevel {
   Admin = 'admin',
@@ -18,7 +15,9 @@ export enum GitHubCollaboratorPermissionLevel {
   None = 'none',
 }
 
-export function ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission(level: GitHubCollaboratorPermissionLevel): GitHubRepositoryPermission {
+export function ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission(
+  level: GitHubCollaboratorPermissionLevel
+): GitHubRepositoryPermission {
   switch (level) {
     case GitHubCollaboratorPermissionLevel.None:
       return null;
@@ -29,7 +28,9 @@ export function ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermis
     case GitHubCollaboratorPermissionLevel.Read:
       return GitHubRepositoryPermission.Pull;
     default:
-      throw new Error(`ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission unrecognized value ${level} cannot be translated`);
+      throw new Error(
+        `ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission unrecognized value ${level} cannot be translated`
+      );
   }
 }
 
@@ -41,18 +42,31 @@ export class RepositoryPermission {
 
   constructor(entity: unknown) {
     if (entity) {
-      common.assignKnownFieldsPrefixed(this, entity, 'repositoryPermission', repoPermissionProperties);
+      common.assignKnownFieldsPrefixed(
+        this,
+        entity,
+        'repositoryPermission',
+        repoPermissionProperties
+      );
       if (this._user) {
         this._id = this._user.id;
       }
     }
   }
 
-  get id(): string { return this._id; }
-  get permission(): GitHubCollaboratorPermissionLevel { return this._permission; }
-  get user(): any { return this._user; }
+  get id(): string {
+    return this._id;
+  }
+  get permission(): GitHubCollaboratorPermissionLevel {
+    return this._permission;
+  }
+  get user(): any {
+    return this._user;
+  }
 
   public asGitHubRepositoryPermission(): GitHubRepositoryPermission {
-    return ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission(this._permission);
+    return ConvertGitHubCollaboratorPermissionLevelToGitHubRepositoryPermission(
+      this._permission
+    );
   }
 }

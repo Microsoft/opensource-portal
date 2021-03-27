@@ -20,7 +20,11 @@ const veryOldCacheOK = {
   maxAgeSeconds: 60 * 60 * 6 /* 6 hours old */,
 };
 
-async function tryGetUserId(operations: Operations, usernamesToId: Map<string, boolean | number>, username: string): Promise<string> {
+async function tryGetUserId(
+  operations: Operations,
+  usernamesToId: Map<string, boolean | number>,
+  username: string
+): Promise<string> {
   const knownUsernameToId = usernamesToId.get(username);
   if (knownUsernameToId === undefined) {
     try {
@@ -40,7 +44,12 @@ async function tryGetUserId(operations: Operations, usernamesToId: Map<string, b
   }
 }
 
-async function tryGetRepositoryId(operations: Operations, reposToIds: Map<string, boolean | number>, organization: Organization, repoName: string): Promise<string> {
+async function tryGetRepositoryId(
+  operations: Operations,
+  reposToIds: Map<string, boolean | number>,
+  organization: Organization,
+  repoName: string
+): Promise<string> {
   const knownToId = reposToIds.get(repoName);
   if (knownToId === undefined) {
     try {
@@ -68,7 +77,11 @@ async function tryGetRepositoryId(operations: Operations, reposToIds: Map<string
   }
 }
 
-async function tryGetTeamId(teamsToIds: Map<string, boolean | number>, organization: Organization, teamName: string): Promise<string> {
+async function tryGetTeamId(
+  teamsToIds: Map<string, boolean | number>,
+  organization: Organization,
+  teamName: string
+): Promise<string> {
   const knownToId = teamsToIds.get(teamName);
   if (knownToId === undefined) {
     try {
@@ -100,7 +113,10 @@ export default async function migration({ providers }: IReposJob) {
   const usernamesToId = new Map<string, boolean | number>();
   const allLinks = await linkProvider.getAll();
   for (const link of allLinks) {
-    usernamesToId.set(link.thirdPartyUsername.toLowerCase(), Number(link.thirdPartyId));
+    usernamesToId.set(
+      link.thirdPartyUsername.toLowerCase(),
+      Number(link.thirdPartyId)
+    );
   }
 
   const reposToId = new Map<string, boolean | number>();
@@ -109,7 +125,7 @@ export default async function migration({ providers }: IReposJob) {
   let i = 0;
   for (const row of rows) {
     ++i;
-    const remainder = {...row};
+    const remainder = { ...row };
 
     // created_at: epoch
     const created = new Date(parseInt(row.created_at, 10));
@@ -123,7 +139,11 @@ export default async function migration({ providers }: IReposJob) {
     actionNames.add(action);
     delete remainder.action;
 
-    console.log(`${i}: ${row.action} ${row.actor} ${row.user} ${row.org} ${row.repo} ${createdAsMoment.fromNow()}`);
+    console.log(
+      `${i}: ${row.action} ${row.actor} ${row.user} ${row.org} ${
+        row.repo
+      } ${createdAsMoment.fromNow()}`
+    );
     const auditRecord = new AuditLogRecord();
     auditRecord.recordId = '?';
     auditRecord.recordSource = AuditLogSource.AuditLogImport;
@@ -158,10 +178,17 @@ export default async function migration({ providers }: IReposJob) {
       if (i >= 0) {
         const organizationSubstring = repoName.substr(0, i);
         if (organizationSubstring.toLowerCase() !== organization.name) {
-          console.log(`different organization name, may be a fork: ${organizationSubstring}`);
+          console.log(
+            `different organization name, may be a fork: ${organizationSubstring}`
+          );
         }
         repoName = repoName.substr(i + 1);
-        repoId = await tryGetRepositoryId(operations, reposToId, organization, repoName);
+        repoId = await tryGetRepositoryId(
+          operations,
+          reposToId,
+          organization,
+          repoName
+        );
       }
     }
 
@@ -206,7 +233,9 @@ export default async function migration({ providers }: IReposJob) {
     delete remainder['data.events_were'];
 
     // data.old_user
-    const oldUser = row['data.old_user'] ? row['data.old_user'].toLowerCase() : null;
+    const oldUser = row['data.old_user']
+      ? row['data.old_user'].toLowerCase()
+      : null;
     let oldUserId = null;
     if (oldUser) {
       oldUserId = await tryGetUserId(operations, usernamesToId, oldUser);
@@ -215,7 +244,21 @@ export default async function migration({ providers }: IReposJob) {
 
     const remainderKeys = Object.getOwnPropertyNames(remainder);
 
-    console.dir({ actorUsername, actorId, userUsername, userId, orgName, orgId: organization.id, repoName, repoId, oldUser, oldUserId, teamName, teamId, remainder: remainderKeys.length ? remainder : null});
+    console.dir({
+      actorUsername,
+      actorId,
+      userUsername,
+      userId,
+      orgName,
+      orgId: organization.id,
+      repoName,
+      repoId,
+      oldUser,
+      oldUserId,
+      teamName,
+      teamId,
+      remainder: remainderKeys.length ? remainder : null,
+    });
 
     if (remainderKeys.length) {
       console.dir(remainder);
@@ -242,12 +285,12 @@ function parseCsv(filename: string): Promise<any[]> {
   return new Promise((resolve, reject) => {
     let rows = [];
     fs.createReadStream(filename)
-    .pipe(csv())
-    .on('data', row => {
-      rows.push(row);
-    })
-    .on('end', () => {
-      resolve(rows);
-    });
+      .pipe(csv())
+      .on('data', (row) => {
+        rows.push(row);
+      })
+      .on('end', () => {
+        resolve(rows);
+      });
   });
 }

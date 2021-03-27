@@ -17,7 +17,7 @@ export class LinkMethods {
   }
 
   getCachedLinks(getPromisedLinks, options, cacheOptions, callback) {
-    if (callback === undefined && typeof (cacheOptions) === 'function') {
+    if (callback === undefined && typeof cacheOptions === 'function') {
       callback = cacheOptions;
       cacheOptions = {};
     }
@@ -38,7 +38,7 @@ export class LinkMethods {
     }
     const compositeEngine = this.libraryContext.compositeEngine;
     const wrappingCallback = createCallbackFlattenData(callback);
-    compositeEngine.execute(apiContext).then(ok => {
+    compositeEngine.execute(apiContext).then((ok) => {
       return wrappingCallback(null, ok);
     }, wrappingCallback as any);
     // return core.execute(apiContext, innerCallback);

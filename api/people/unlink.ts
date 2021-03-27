@@ -23,28 +23,35 @@ router.use(function (req: ILinksApiRequestWithUnlink, res, next) {
     return next(jsonError('The key is not authorized for specific APIs', 401));
   }
   if (!token.hasScope('unlink')) {
-    return next(jsonError('The key is not authorized to use the unlink API', 401));
+    return next(
+      jsonError('The key is not authorized to use the unlink API', 401)
+    );
   }
   return next();
 });
 
-router.use('/github/id/:id', asyncHandler(async (req: ILinksApiRequestWithUnlink, res, next) => {
-  const { linkProvider } = getProviders(req);
-  const id = req.params.id;
-  try {
-    const link = await linkProvider.getByThirdPartyId(id);
-    if (!link) {
-      throw new Error(`Could not locate a link for GitHub user ID ${id}`);
+router.use(
+  '/github/id/:id',
+  asyncHandler(async (req: ILinksApiRequestWithUnlink, res, next) => {
+    const { linkProvider } = getProviders(req);
+    const id = req.params.id;
+    try {
+      const link = await linkProvider.getByThirdPartyId(id);
+      if (!link) {
+        throw new Error(`Could not locate a link for GitHub user ID ${id}`);
+      }
+      req.unlink = link;
+      return next();
+    } catch (error) {
+      return next(jsonError(error));
     }
-    req.unlink = link;
-    return next();
-  } catch (error) {
-    return next(jsonError(error));
-  }
-}));
+  })
+);
 
 router.use('*', (req: ILinksApiRequestWithUnlink, res, next) => {
-  return next(req.unlink ? undefined : jsonError('No link available for operation', 404));
+  return next(
+    req.unlink ? undefined : jsonError('No link available for operation', 404)
+  );
 });
 
 router.delete('*', (req: ILinksApiRequestWithUnlink, res, next) => {
@@ -52,24 +59,33 @@ router.delete('*', (req: ILinksApiRequestWithUnlink, res, next) => {
   const link = req.unlink;
   let purpose: UnlinkPurpose = null;
   try {
-    purpose = apiUnlinkPurposeToEnum((req.headers['unlink-purpose'] || 'termination') as string);
+    purpose = apiUnlinkPurposeToEnum(
+      (req.headers['unlink-purpose'] || 'termination') as string
+    );
   } catch (purposeError) {
     return next(jsonError(purposeError, 400));
   }
   const options = { purpose };
-  return operations.terminateLinkAndMemberships(link.thirdPartyId, options).then(results => {
-    res.json({
-      messages: Array.isArray(results) ? (results as any as string[]).reverse() : results,
+  return operations
+    .terminateLinkAndMemberships(link.thirdPartyId, options)
+    .then((results) => {
+      res.json({
+        messages: Array.isArray(results)
+          ? ((results as any) as string[]).reverse()
+          : results,
+      });
+    })
+    .catch((problem) => {
+      return next(jsonError(problem, 500));
     });
-  }).catch(problem => {
-    return next(jsonError(problem, 500));
-  });
 });
 
 function apiUnlinkPurposeToEnum(purpose: string): UnlinkPurpose {
   switch (purpose) {
     case 'operations':
-      throw new Error('The unlink purpose "operations" is not supported by API');
+      throw new Error(
+        'The unlink purpose "operations" is not supported by API'
+      );
     case 'termination':
       return UnlinkPurpose.Termination;
     case 'self':

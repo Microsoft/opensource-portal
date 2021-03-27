@@ -21,7 +21,13 @@ export default function supportOfficeHyperlinks(req, res, next) {
   const { insights } = getProviders(req);
   const userAgent = req.headers['user-agent'];
   const isAuthenticated = req.isAuthenticated ? req.isAuthenticated() : false;
-  if (userAgent && userAgent.includes && !isAuthenticated && (userAgent.includes(GenericOfficeUserAgent) || userAgent.includes(WordUserAgent))) {
+  if (
+    userAgent &&
+    userAgent.includes &&
+    !isAuthenticated &&
+    (userAgent.includes(GenericOfficeUserAgent) ||
+      userAgent.includes(WordUserAgent))
+  ) {
     insights?.trackEvent({
       name: 'InterceptOfficeHyperlinkRequest',
       properties: {
@@ -32,7 +38,9 @@ export default function supportOfficeHyperlinks(req, res, next) {
         responseType: 200,
       },
     });
-    return res.send(`When using Microsoft Office, you need to open the hyperlink in your browser to authenticate if needed`);
+    return res.send(
+      `When using Microsoft Office, you need to open the hyperlink in your browser to authenticate if needed`
+    );
   }
   return next();
-};
+}

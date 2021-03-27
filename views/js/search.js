@@ -4,7 +4,7 @@ inputQuery.on('keyup input', function () {
   timer && clearTimeout(timer);
   timer = setTimeout(updatePage, 5000);
 });
-$('#entitySearch').submit(function(event) {
+$('#entitySearch').submit(function (event) {
   updatePage();
   event.preventDefault();
 });
@@ -22,5 +22,11 @@ function replaceUrlParam(url, paramName, paramValue) {
   if (url.search(pattern) >= 0) {
     return url.replace(pattern, '$1' + paramValue + '$2');
   }
-  return url + (url.indexOf('?') > 0 ? '&' : '?') + paramName + '=' + encodeURIComponent(paramValue);
+  return (
+    url +
+    (url.indexOf('?') > 0 ? '&' : '?') +
+    paramName +
+    '=' +
+    encodeURIComponent(paramValue)
+  );
 }

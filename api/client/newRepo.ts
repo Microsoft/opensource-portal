@@ -16,7 +16,13 @@ router.use('/org/:org', (req: ReposAppRequest, res, next) => {
   try {
     req.organization = operations.getOrganization(orgName);
   } catch (noOrganization) {
-    return next(jsonError(new Error('This API endpoint is not configured for the provided organization name.')));
+    return next(
+      jsonError(
+        new Error(
+          'This API endpoint is not configured for the provided organization name.'
+        )
+      )
+    );
   }
   return next();
 });

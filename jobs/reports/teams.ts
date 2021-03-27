@@ -59,7 +59,7 @@ interface IReportsBasicTeam {
 
   ageInMonths?: any;
   recentActivity?: any;
-};
+}
 
 interface IReportsBasicTeamsEntry {
   rows?: any[];
@@ -76,18 +76,23 @@ for (let i = 0; i < definitions.length; i++) {
 
 const simpleDateFormat = 'l';
 
-export async function process(context: IReportsContext): Promise<IReportsContext> {
+export async function process(
+  context: IReportsContext
+): Promise<IReportsContext> {
   await getTeams(context);
   await iterateTeams(context);
   return context;
 }
 
-async function identityMaintainersWithoutLinks(teamContext: IReportsTeamContext, maintainers): Promise<IReportsTeamContext> {
+async function identityMaintainersWithoutLinks(
+  teamContext: IReportsTeamContext,
+  maintainers
+): Promise<IReportsTeamContext> {
   const maintainersByType = {
-    linked: maintainers.filter(admin => {
+    linked: maintainers.filter((admin) => {
       return admin.link;
     }),
-    unlinked: maintainers.filter(admin => {
+    unlinked: maintainers.filter((admin) => {
       return !admin.link;
     }),
   };
@@ -95,7 +100,10 @@ async function identityMaintainersWithoutLinks(teamContext: IReportsTeamContext,
   return teamContext;
 }
 
-async function identifyTeamMaintainers(teamContext: IReportsTeamContext, team: Team): Promise<TeamMember[]> {
+async function identifyTeamMaintainers(
+  teamContext: IReportsTeamContext,
+  team: Team
+): Promise<TeamMember[]> {
   const cacheOptions = {
     backgroundRefresh: false, // immediate
     maxAgeSeconds: 60 * 60 * 5, // 5 hours
@@ -123,7 +131,9 @@ async function iterateTeams(context: IReportsContext) {
   return context;
 }
 
-async function getTeamDetails(teamContext: IReportsTeamContext): Promise<IReportsTeamContext> {
+async function getTeamDetails(
+  teamContext: IReportsTeamContext
+): Promise<IReportsTeamContext> {
   const team = teamContext.team as Team;
   const cacheOptions = {
     backgroundRefresh: false,
@@ -133,7 +143,10 @@ async function getTeamDetails(teamContext: IReportsTeamContext): Promise<IReport
   return teamContext;
 }
 
-async function gatherLinkData(teamContext: IReportsTeamContext, maintainers: TeamMember[]) {
+async function gatherLinkData(
+  teamContext: IReportsTeamContext,
+  maintainers: TeamMember[]
+) {
   for (const maintainer of maintainers) {
     try {
       await maintainer.resolveDirectLink();
@@ -145,7 +158,14 @@ async function gatherLinkData(teamContext: IReportsTeamContext, maintainers: Tea
 }
 
 async function processTeam(context: IReportsContext, team: Team) {
-  console.log('team: ' + context.processing.teams.remaining-- + ': ' + team.organization.name + '/' + team.name);
+  console.log(
+    'team: ' +
+      context.processing.teams.remaining-- +
+      ': ' +
+      team.organization.name +
+      '/' +
+      team.name
+  );
   try {
     const teamContext: IReportsTeamContext = {
       parent: context,
@@ -199,10 +219,21 @@ async function processTeam(context: IReportsContext, team: Team) {
     }
     // Send to org admins
     const orgData = context.organizationData[orgName];
-    for (let i = 0; orgData && orgData.organizationContext && orgData.organizationContext.recipients && orgData.organizationContext.recipients.length && i < orgData.organizationContext.recipients.length; i++) {
+    for (
+      let i = 0;
+      orgData &&
+      orgData.organizationContext &&
+      orgData.organizationContext.recipients &&
+      orgData.organizationContext.recipients.length &&
+      i < orgData.organizationContext.recipients.length;
+      i++
+    ) {
       teamContext.recipients.push(orgData.organizationContext.recipients[i]);
     }
-    basicTeam.maintainers = teamContext.maintainers && teamContext.maintainers.length ? teamContext.maintainers.length.toString() : 'None';
+    basicTeam.maintainers =
+      teamContext.maintainers && teamContext.maintainers.length
+        ? teamContext.maintainers.length.toString()
+        : 'None';
     const actionPromoteMembers = {
       link: `https://github.com/orgs/${orgName}/teams/${slug}/members`,
       text: 'Promote members',
@@ -219,10 +250,12 @@ async function processTeam(context: IReportsContext, team: Team) {
       link: `https://github.com/orgs/${orgName}/teams/${slug}/members`,
       text: 'Open',
     };
-    const actionViewInPortal = context.config.urls ? {
-      link: `${context.config.urls.repos}${organization.name}/teams/${slug}`,
-      text: 'Manage team',
-    } : null;
+    const actionViewInPortal = context.config.urls
+      ? {
+          link: `${context.config.urls.repos}${organization.name}/teams/${slug}`,
+          text: 'Manage team',
+        }
+      : null;
     let createdAt = team.created_at ? moment(team.created_at) : null;
     if (createdAt) {
       basicTeam.created = createdAt.format(simpleDateFormat);
@@ -241,51 +274,115 @@ async function processTeam(context: IReportsContext, team: Team) {
     const systemTeamIds = team.organization.systemTeamIds;
     const isSystemTeam = systemTeamIds.includes(team.id);
     if (team.members_count == 0 && team.repos_count == 0 && !isSystemTeam) {
-      addEntityToIssueType(context, teamContext, 'emptyTeams', basicTeam, actionDelete);
+      addEntityToIssueType(
+        context,
+        teamContext,
+        'emptyTeams',
+        basicTeam,
+        actionDelete
+      );
     } else {
       // Member or maintainer issues
       if (!isSystemTeam && team.members_count == 0) {
-        addEntityToIssueType(context, teamContext, 'noTeamMembers', basicTeam, actionDelete, actionViewInPortal);
+        addEntityToIssueType(
+          context,
+          teamContext,
+          'noTeamMembers',
+          basicTeam,
+          actionDelete,
+          actionViewInPortal
+        );
       } else if (!isSystemTeam && teamContext.teamMaintainers.length === 0) {
-        addEntityToIssueType(context, teamContext, 'noTeamMaintainers', basicTeam, actionPromoteMembers, actionViewInPortal);
+        addEntityToIssueType(
+          context,
+          teamContext,
+          'noTeamMaintainers',
+          basicTeam,
+          actionPromoteMembers,
+          actionViewInPortal
+        );
       } else if (teamContext.maintainersByType.unlinked.length > 0) {
         const logins = [];
-        for (let z = 0; z < teamContext.maintainersByType.unlinked.length; z++) {
+        for (
+          let z = 0;
+          z < teamContext.maintainersByType.unlinked.length;
+          z++
+        ) {
           const unlinkedEntry = teamContext.maintainersByType.unlinked[z];
           logins.push(unlinkedEntry.login);
         }
-        const specialEntity = Object.assign({
-          logins: logins.join(', '),
-        }, basicTeam);
-        const reportName = externalMembersPermitted ? 'unlinkedMaintainersWhenAllowed' : 'unlinkedMaintainers';
+        const specialEntity = Object.assign(
+          {
+            logins: logins.join(', '),
+          },
+          basicTeam
+        );
+        const reportName = externalMembersPermitted
+          ? 'unlinkedMaintainersWhenAllowed'
+          : 'unlinkedMaintainers';
         // TODO: use the operations e-mail
-        addEntityToIssueType(context, teamContext, reportName, specialEntity, actionRemoveMembers, {
-          link: `mailto:opensource@microsoft.com?subject=Reporting a former employee related to the ${orgName} ${team.name} team`,
-          text: 'Former employee?',
-        });
+        addEntityToIssueType(
+          context,
+          teamContext,
+          reportName,
+          specialEntity,
+          actionRemoveMembers,
+          {
+            link: `mailto:opensource@microsoft.com?subject=Reporting a former employee related to the ${orgName} ${team.name} team`,
+            text: 'Former employee?',
+          }
+        );
       }
       // No repositories
       if (team.repos_count <= 0 && !isSystemTeam) {
-        addEntityToIssueType(context, teamContext, 'TeamsWithoutRepositories', basicTeam, actionViewInPortal);
+        addEntityToIssueType(
+          context,
+          teamContext,
+          'TeamsWithoutRepositories',
+          basicTeam,
+          actionViewInPortal
+        );
       }
     }
     const thisWeek = moment().subtract(7, 'days');
     const today = moment().subtract(1, 'days');
     const ageInMonths = today.diff(createdAt, 'months');
     if (ageInMonths > 0) {
-      basicTeam.ageInMonths = ageInMonths === 1 ? '1 month' : ageInMonths + ' months';
+      basicTeam.ageInMonths =
+        ageInMonths === 1 ? '1 month' : ageInMonths + ' months';
     }
     const monthsSinceUpdates = today.diff(mostRecentActivityMoment, 'months');
-    const timeAsString = monthsSinceUpdates + ' month' + (monthsSinceUpdates === 1 ? '' : 's');
-    basicTeam.recentActivity = monthsSinceUpdates < 1 ? 'Active' : `${timeAsString} (${mostRecentActivity})`;
+    const timeAsString =
+      monthsSinceUpdates + ' month' + (monthsSinceUpdates === 1 ? '' : 's');
+    basicTeam.recentActivity =
+      monthsSinceUpdates < 1
+        ? 'Active'
+        : `${timeAsString} (${mostRecentActivity})`;
     if (createdAt.isAfter(thisWeek) && !privateEngineering) {
       // New public and private repos
-      const teamForManagerAndLawyer = shallowCloneWithAdditionalRecipients(basicTeam, teamContext.additionalRecipients);
+      const teamForManagerAndLawyer = shallowCloneWithAdditionalRecipients(
+        basicTeam,
+        teamContext.additionalRecipients
+      );
       if (createdAt.isAfter(today)) {
-        addEntityToIssueType(context, teamContext, 'NewTeamsToday', teamForManagerAndLawyer, actionView, actionViewInPortal);
+        addEntityToIssueType(
+          context,
+          teamContext,
+          'NewTeamsToday',
+          teamForManagerAndLawyer,
+          actionView,
+          actionViewInPortal
+        );
       }
       // Always include in the weekly summary
-      addEntityToIssueType(context, teamContext, 'NewTeamsWeek', teamForManagerAndLawyer, actionView, actionViewInPortal);
+      addEntityToIssueType(
+        context,
+        teamContext,
+        'NewTeamsWeek',
+        teamForManagerAndLawyer,
+        actionView,
+        actionViewInPortal
+      );
     }
     if (context.settings.teamDelayAfter) {
       await sleep(context.settings.teamDelayAfter);
@@ -309,7 +406,14 @@ function shallowCloneWithAdditionalRecipients(basicTeam, additionalRecipients) {
   return clone;
 }
 
-function addEntityToIssueType(context, teamContext, type, entity, optionalAction1?, optionalAction2?) {
+function addEntityToIssueType(
+  context,
+  teamContext,
+  type,
+  entity,
+  optionalAction1?,
+  optionalAction2?
+) {
   const definition = definitionsByName[type];
   if (!definition) {
     throw new Error(`No defined issue type ${type}`);
@@ -342,7 +446,9 @@ function addEntityToIssueType(context, teamContext, type, entity, optionalAction
     const entry: IReportsBasicTeamsEntry = {};
     placeholder[type] = entry;
     if (definition.hasTable && definition.hasList) {
-      throw new Error('Definitions cannot have both tables and lists at this time');
+      throw new Error(
+        'Definitions cannot have both tables and lists at this time'
+      );
     }
     if (definition.hasTable) {
       entry.rows = [];
@@ -352,7 +458,9 @@ function addEntityToIssueType(context, teamContext, type, entity, optionalAction
     }
   }
   if (definition.hasTable && definition.hasList) {
-    throw new Error('Definitions cannot have both tables and lists at this time');
+    throw new Error(
+      'Definitions cannot have both tables and lists at this time'
+    );
   }
   let listPropertiesName = null;
   if (definition.hasTable) {
@@ -374,9 +482,7 @@ function addEntityToIssueType(context, teamContext, type, entity, optionalAction
   const listProperties = definition[listPropertiesName];
 
   if (listProperties && (listProperties.groupBy || listProperties.sortBy)) {
-    const sortBy = [
-      dest,
-    ];
+    const sortBy = [dest];
     if (listProperties.groupBy) {
       sortBy.push(listProperties.groupBy);
     }
@@ -395,7 +501,9 @@ function flattenTeamsMap(teamsMap, operations) {
     const byOrg = asArray[i].orgs;
     const organizationNames = Object.getOwnPropertyNames(byOrg);
     if (organizationNames.length !== 1) {
-      throw new Error('Expected just a single organization for the team while preparing the list of teams to report on');
+      throw new Error(
+        'Expected just a single organization for the team while preparing the list of teams to report on'
+      );
     }
     const orgName = organizationNames[0];
     const organization = operations.getOrganization(orgName);
@@ -413,7 +521,7 @@ async function getTeams(context: IReportsContext): Promise<IReportsContext> {
   context.entities.teams = asArray.sort((a, b) => {
     const aFullName = `${a.organization.name}/${a.name}`;
     const bFullName = `${b.organization.name}/${b.name}`;
-    return aFullName.localeCompare(bFullName, 'en', {'sensitivity': 'base'});
+    return aFullName.localeCompare(bFullName, 'en', { sensitivity: 'base' });
   });
   return context;
 }
@@ -426,12 +534,16 @@ function transformReasonsToArray(userEntry, teamName, orgName) {
   } else {
     for (let i = 0; i < userEntry.reasons.memberships.length; i++) {
       const team = userEntry.reasons.memberships[i];
-      reasons.push(`Maintainer of the ${team.name} team in the ${orgName} GitHub organization`);
+      reasons.push(
+        `Maintainer of the ${team.name} team in the ${orgName} GitHub organization`
+      );
     }
   }
 
   if (!reasons.length) {
-    reasons.push(`Unknown reason related to the ${teamName} team in the ${orgName} GitHub organization`);
+    reasons.push(
+      `Unknown reason related to the ${teamName} team in the ${orgName} GitHub organization`
+    );
   }
   return reasons;
 }
@@ -440,7 +552,9 @@ export async function build(context: IReportsContext) {
   return context;
 }
 
-export async function consolidate(context: IReportsContext): Promise<IReportsContext> {
+export async function consolidate(
+  context: IReportsContext
+): Promise<IReportsContext> {
   // For any used definitions of a provider entity instance, add it to the generic report
   const consolidated = {
     definitions: [],
@@ -448,7 +562,10 @@ export async function consolidate(context: IReportsContext): Promise<IReportsCon
   };
   for (let i = 0; i < definitions.length; i++) {
     const definition = definitions[i];
-    if (!context.visitedDefinitions || !context.visitedDefinitions[providerName]) {
+    if (
+      !context.visitedDefinitions ||
+      !context.visitedDefinitions[providerName]
+    ) {
       return context;
     }
     if (context.visitedDefinitions[providerName].has(definition.name)) {
@@ -456,23 +573,28 @@ export async function consolidate(context: IReportsContext): Promise<IReportsCon
     }
   }
   // Entities
-  const sorted = _.sortBy(context.teamData, 'nameLowercase') ; // 'entityName'); // name groups by org name AND repo name naturally
+  const sorted = _.sortBy(context.teamData, 'nameLowercase'); // 'entityName'); // name groups by org name AND repo name naturally
   for (let i = 0; i < sorted.length; i++) {
     const fullEntity = sorted[i];
     const reducedEntity: IReportsTeamsReducedEntity = {
       name: fullEntity.name,
     };
-    const contextDirectProperties = [
-      'issues',
-      'recipients',
-    ];
+    const contextDirectProperties = ['issues', 'recipients'];
     cloneProperties(fullEntity, contextDirectProperties, reducedEntity);
     // Only store in the consolidated report if there are recipients for the entity
     const issueCounter = Object.getOwnPropertyNames(reducedEntity.issues);
-    if (issueCounter && issueCounter.length && reducedEntity && reducedEntity.recipients && reducedEntity.recipients.length > 0) {
+    if (
+      issueCounter &&
+      issueCounter.length &&
+      reducedEntity &&
+      reducedEntity.recipients &&
+      reducedEntity.recipients.length > 0
+    ) {
       consolidated.entities.push(reducedEntity);
     } else if (issueCounter && issueCounter.length) {
-      console.warn(`There are no recipients to receive ${reducedEntity.name} reports with active issues`);
+      console.warn(
+        `There are no recipients to receive ${reducedEntity.name} reports with active issues`
+      );
     }
   }
   context.consolidated[providerName] = consolidated;

@@ -3,9 +3,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import { IAuditLogRecordProvider, IAuditLogRecordProviderCreateOptions, AuditLogRecordProvider } from './auditLogRecordProvider';
+import {
+  IAuditLogRecordProvider,
+  IAuditLogRecordProviderCreateOptions,
+  AuditLogRecordProvider,
+} from './auditLogRecordProvider';
 
-export async function createAndInitializeAuditLogRecordProviderInstance(options?: IAuditLogRecordProviderCreateOptions): Promise<IAuditLogRecordProvider> {
+export async function createAndInitializeAuditLogRecordProviderInstance(
+  options?: IAuditLogRecordProviderCreateOptions
+): Promise<IAuditLogRecordProvider> {
   const provider = new AuditLogRecordProvider(options);
   await provider.initialize();
   return provider;
@@ -45,7 +51,7 @@ export const AuditEvents = {
     RemoveMember: 'org.remove_member',
     RemoveOutsideCollaborator: 'org.remove_outside_collaborator',
     CancelInvitation: 'org.cancel_invitation',
-  }
+  },
 };
 
 export const MapWebhookEventsToAuditEvents = {

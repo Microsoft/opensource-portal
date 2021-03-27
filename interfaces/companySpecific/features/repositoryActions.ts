@@ -10,6 +10,15 @@ import { IndividualContext } from '../../../user';
 export interface ICompanySpecificRepositoryStateStatus {}
 
 export interface ICompanySpecificFeatureRepositoryState {
-  getCurrentRepositoryState(providers: IProviders, repository: Repository): Promise<ICompanySpecificRepositoryStateStatus>;
-  sendActionReceipt(providers: IProviders, context: IndividualContext, repository: Repository, action: LocalApiRepoAction, currentState: ICompanySpecificRepositoryStateStatus): Promise<void>;
+  getCurrentRepositoryState(
+    providers: IProviders,
+    repository: Repository
+  ): Promise<ICompanySpecificRepositoryStateStatus>;
+  sendActionReceipt(
+    providers: IProviders,
+    context: IndividualContext,
+    repository: Repository,
+    action: LocalApiRepoAction,
+    currentState: ICompanySpecificRepositoryStateStatus
+  ): Promise<void>;
 }

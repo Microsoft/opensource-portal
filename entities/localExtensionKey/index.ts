@@ -21,7 +21,9 @@ export interface ILocalExtensionKeyProviderOptions {
   entityMetadataProvider: IEntityMetadataProvider;
 }
 
-export async function CreateLocalExtensionKeyProvider(options: ILocalExtensionKeyProviderOptions): Promise<ILocalExtensionKeyProvider> {
+export async function CreateLocalExtensionKeyProvider(
+  options: ILocalExtensionKeyProviderOptions
+): Promise<ILocalExtensionKeyProvider> {
   const provider = new LocalExtensionKeyProvider(options);
   await provider.initialize();
   return provider;

@@ -18,11 +18,13 @@ router.get('/', (req: ReposAppRequest, res, next) => {
   const link = config.serviceMessage?.link;
   const details = config.serviceMessage?.details;
   let banner = text ? { text, link, details } : null;
-  return res.json({banner});
+  return res.json({ banner });
 });
 
 router.use('*', (req, res, next) => {
-  return next(jsonError('no API or function available within this banner route', 404));
+  return next(
+    jsonError('no API or function available within this banner route', 404)
+  );
 });
 
 export default router;

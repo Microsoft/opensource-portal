@@ -25,10 +25,18 @@ import { IProviders, stripDistFolderName } from '../transitional';
 //   include 'corporate/directoryname/viewname'
 //
 
-export default async function initializeCorporateViews(providers: IProviders, dirname: string): Promise<any> {
+export default async function initializeCorporateViews(
+  providers: IProviders,
+  dirname: string
+): Promise<any> {
   const { config } = providers.config;
-  const appDirectory = config && config.typescript && config.typescript.appDirectory ? config.typescript.appDirectory : stripDistFolderName(dirname);
-  const corporateViewsRoot = path.resolve(path.join(appDirectory, 'views', 'corporate'));
+  const appDirectory =
+    config && config.typescript && config.typescript.appDirectory
+      ? config.typescript.appDirectory
+      : stripDistFolderName(dirname);
+  const corporateViewsRoot = path.resolve(
+    path.join(appDirectory, 'views', 'corporate')
+  );
   try {
     await fs.access(corporateViewsRoot, fsConstants.R_OK);
   } catch (err) {
@@ -41,7 +49,9 @@ async function recurseDirectory(dir: string) {
   const thisLevel = {};
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      thisLevel[entry.name] = await recurseDirectory(path.join(dir, entry.name));
+      thisLevel[entry.name] = await recurseDirectory(
+        path.join(dir, entry.name)
+      );
     } else if (entry.isFile()) {
       const baseName = path.basename(entry.name, path.extname(entry.name));
       thisLevel[baseName] = true;

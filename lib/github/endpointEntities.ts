@@ -18,7 +18,10 @@ export enum ResponseBodyType {
 
 const entityPropertiesToKeep = new Map<GitHubResponseType, Set<string>>();
 const entityPropertiesToDrop = new Map<GitHubResponseType, Set<string>>();
-const entityPropertiesSubsets = new Map<GitHubResponseType, Map<string, GitHubResponseType>>();
+const entityPropertiesSubsets = new Map<
+  GitHubResponseType,
+  Map<string, GitHubResponseType>
+>();
 const apiToEntityType = new Map<string, GitHubResponseType>();
 const apiToEntityResponseType = new Map<string, ResponseBodyType>();
 
@@ -51,7 +54,10 @@ function RegisterEntity(entityType: GitHubResponseType, properties: any[]) {
     pair = properties[i];
     const fieldName = pair[0];
     if (pair[1] === FieldType.Drop || pair[1] === FieldType.Keep) {
-      const targetMap = pair[1] === FieldType.Drop ? entityPropertiesToDrop : entityPropertiesToKeep;
+      const targetMap =
+        pair[1] === FieldType.Drop
+          ? entityPropertiesToDrop
+          : entityPropertiesToKeep;
       const targetName = pair[1] === FieldType.Drop ? 'drop' : 'keep';
       const container = targetMap.get(entityType);
       container.add(fieldName);
@@ -59,7 +65,9 @@ function RegisterEntity(entityType: GitHubResponseType, properties: any[]) {
     } else if (pair[1] === FieldType.Entity) {
       const mappedPropertyType = pair[2];
       if (!mappedPropertyType) {
-        throw new Error('Entity subtypes must have defined new subtypes to register');
+        throw new Error(
+          'Entity subtypes must have defined new subtypes to register'
+        );
       }
       const container = entityPropertiesSubsets.get(entityType);
       container.set(fieldName, mappedPropertyType);
@@ -69,34 +77,100 @@ function RegisterEntity(entityType: GitHubResponseType, properties: any[]) {
   }
 }
 
-function RegisterEndpoint(endpoint: string, entityType: GitHubResponseType, responseType: ResponseBodyType = ResponseBodyType.Entity) {
+function RegisterEndpoint(
+  endpoint: string,
+  entityType: GitHubResponseType,
+  responseType: ResponseBodyType = ResponseBodyType.Entity
+) {
   if (apiToEntityType.has(endpoint)) {
-    throw new Error(`Endpoint ${endpoint} has already registered a GitHub entity type. No duplicates.`);
+    throw new Error(
+      `Endpoint ${endpoint} has already registered a GitHub entity type. No duplicates.`
+    );
   }
   apiToEntityType.set(endpoint, entityType);
   apiToEntityResponseType.set(endpoint, responseType);
 }
 
 RegisterEndpoint('repos.get', GitHubResponseType.Repository);
-RegisterEndpoint('repos.getForOrg', GitHubResponseType.Repository, ResponseBodyType.Array);
-RegisterEndpoint('repos.listForOrg', GitHubResponseType.Repository, ResponseBodyType.Array); // new  repos.getForOrg
-RegisterEndpoint('repos.getCollaborators', GitHubResponseType.Collaborator, ResponseBodyType.Array);
-RegisterEndpoint('repos.listCollaborators', GitHubResponseType.Collaborator, ResponseBodyType.Array); // new repos.getCollaborators
-RegisterEndpoint('repos.reviewUserPermissionLevel', GitHubResponseType.UserPermissionLevel);
-RegisterEndpoint('repos.getCollaboratorPermissionLevel', GitHubResponseType.UserPermissionLevel); // replaces repos.reviewUserPermissionLevel
-RegisterEndpoint('repos.listTeams', GitHubResponseType.Team, ResponseBodyType.Array); // new, replaces ?
+RegisterEndpoint(
+  'repos.getForOrg',
+  GitHubResponseType.Repository,
+  ResponseBodyType.Array
+);
+RegisterEndpoint(
+  'repos.listForOrg',
+  GitHubResponseType.Repository,
+  ResponseBodyType.Array
+); // new  repos.getForOrg
+RegisterEndpoint(
+  'repos.getCollaborators',
+  GitHubResponseType.Collaborator,
+  ResponseBodyType.Array
+);
+RegisterEndpoint(
+  'repos.listCollaborators',
+  GitHubResponseType.Collaborator,
+  ResponseBodyType.Array
+); // new repos.getCollaborators
+RegisterEndpoint(
+  'repos.reviewUserPermissionLevel',
+  GitHubResponseType.UserPermissionLevel
+);
+RegisterEndpoint(
+  'repos.getCollaboratorPermissionLevel',
+  GitHubResponseType.UserPermissionLevel
+); // replaces repos.reviewUserPermissionLevel
+RegisterEndpoint(
+  'repos.listTeams',
+  GitHubResponseType.Team,
+  ResponseBodyType.Array
+); // new, replaces ?
 RegisterEndpoint('orgs.get', GitHubResponseType.OrganizationDetails);
-RegisterEndpoint('orgs.getMembers', GitHubResponseType.UserOrOrganization, ResponseBodyType.Array);
-RegisterEndpoint('orgs.listMembers', GitHubResponseType.UserOrOrganization, ResponseBodyType.Array); // new orgs.getMembers
-RegisterEndpoint('orgs.getOrgMembership', GitHubResponseType.OrganizationUserMembership);
-RegisterEndpoint('orgs.getMembership', GitHubResponseType.OrganizationUserMembership); // replaces orgs.getOrgMembership
+RegisterEndpoint(
+  'orgs.getMembers',
+  GitHubResponseType.UserOrOrganization,
+  ResponseBodyType.Array
+);
+RegisterEndpoint(
+  'orgs.listMembers',
+  GitHubResponseType.UserOrOrganization,
+  ResponseBodyType.Array
+); // new orgs.getMembers
+RegisterEndpoint(
+  'orgs.getOrgMembership',
+  GitHubResponseType.OrganizationUserMembership
+);
+RegisterEndpoint(
+  'orgs.getMembership',
+  GitHubResponseType.OrganizationUserMembership
+); // replaces orgs.getOrgMembership
 RegisterEndpoint('orgs.getTeam', GitHubResponseType.Team);
-RegisterEndpoint('orgs.getTeams', GitHubResponseType.Team, ResponseBodyType.Array);
-RegisterEndpoint('orgs.getTeamMembers', GitHubResponseType.UserOrOrganization, ResponseBodyType.Array);
-RegisterEndpoint('orgs.getTeamRepos', GitHubResponseType.Repository, ResponseBodyType.Array);
+RegisterEndpoint(
+  'orgs.getTeams',
+  GitHubResponseType.Team,
+  ResponseBodyType.Array
+);
+RegisterEndpoint(
+  'orgs.getTeamMembers',
+  GitHubResponseType.UserOrOrganization,
+  ResponseBodyType.Array
+);
+RegisterEndpoint(
+  'orgs.getTeamRepos',
+  GitHubResponseType.Repository,
+  ResponseBodyType.Array
+);
 RegisterEndpoint('teams.list', GitHubResponseType.Team, ResponseBodyType.Array); // new orgs.getTeams
-RegisterEndpoint('teams.listMembersLegacy', GitHubResponseType.UserOrOrganization, ResponseBodyType.Array); // new orgs.getTeamMembers
-RegisterEndpoint('teams.listMembersInOrg', GitHubResponseType.UserOrOrganization, ResponseBodyType.Array); // new orgs.getTeamMembers
+RegisterEndpoint(
+  'teams.listMembersLegacy',
+  GitHubResponseType.UserOrOrganization,
+  ResponseBodyType.Array
+); // new orgs.getTeamMembers
+RegisterEndpoint(
+  'teams.listMembersInOrg',
+  GitHubResponseType.UserOrOrganization,
+  ResponseBodyType.Array
+); // new orgs.getTeamMembers
 // teams.listReposInOrg
 RegisterEndpoint('users.getById', GitHubResponseType.UserDetail);
 
@@ -395,12 +469,15 @@ RegisterEntity(GitHubResponseType.OrganizationDetails, [
 export interface IGitHubEntityDefinitions {
   entityPropertiesToKeep: Map<GitHubResponseType, Set<string>>;
   entityPropertiesToDrop: Map<GitHubResponseType, Set<string>>;
-  entityPropertiesSubsets: Map<GitHubResponseType, Map<string, GitHubResponseType>>;
+  entityPropertiesSubsets: Map<
+    GitHubResponseType,
+    Map<string, GitHubResponseType>
+  >;
   apiToEntityType: Map<string, GitHubResponseType>;
   apiToEntityResponseType: Map<string, ResponseBodyType>;
 }
 
-export function getEntityDefinitions() : IGitHubEntityDefinitions {
+export function getEntityDefinitions(): IGitHubEntityDefinitions {
   return {
     entityPropertiesToKeep,
     entityPropertiesToDrop,

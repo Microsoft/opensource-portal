@@ -9,14 +9,28 @@ import path from 'path';
 
 import CosmosSessionStore from '../lib/cosmosSession';
 
-import { IProviders, InnerError, RedisOptions, IApplicationProfile } from '../transitional';
-import { createAndInitializeLinkProviderInstance, ILinkProvider } from '../lib/linkProviders';
+import {
+  IProviders,
+  InnerError,
+  RedisOptions,
+  IApplicationProfile,
+} from '../transitional';
+import {
+  createAndInitializeLinkProviderInstance,
+  ILinkProvider,
+} from '../lib/linkProviders';
 
 import { Operations } from '../business';
-import { createAndInitializeEntityMetadataProviderInstance, IEntityMetadataProvidersOptions } from '../lib/entityMetadataProvider';
+import {
+  createAndInitializeEntityMetadataProviderInstance,
+  IEntityMetadataProvidersOptions,
+} from '../lib/entityMetadataProvider';
 import { createAndInitializeRepositoryMetadataProviderInstance } from '../entities/repositoryMetadata';
 
-import { createMailAddressProviderInstance, IMailAddressProvider } from '../lib/mailAddressProvider';
+import {
+  createMailAddressProviderInstance,
+  IMailAddressProvider,
+} from '../lib/mailAddressProvider';
 
 import ErrorRoutes from './error-routes';
 
@@ -39,7 +53,10 @@ import RedisHelper from '../lib/caching/redis';
 import { createTokenProvider } from '../entities/token';
 import { createAndInitializeApprovalProviderInstance } from '../entities/teamJoinApproval';
 import { CreateLocalExtensionKeyProvider } from '../entities/localExtensionKey';
-import { CreateGraphProviderInstance, IGraphProvider } from '../lib/graphProvider/';
+import {
+  CreateGraphProviderInstance,
+  IGraphProvider,
+} from '../lib/graphProvider/';
 import initializeCorporateViews from './corporateViews';
 
 import keyVaultResolver from '../lib/keyVaultResolver';
@@ -84,12 +101,24 @@ const DefaultApplicationProfile: IApplicationProfile = {
   sessions: true,
 };
 
-type CompanyStartupEntrypoint = (config: any, providers: IProviders, rootdir: string) => Promise<void>;
+type CompanyStartupEntrypoint = (
+  config: any,
+  providers: IProviders,
+  rootdir: string
+) => Promise<void>;
 
-async function initializeAsync(app: IReposApplication, express, rootdir: string, config): Promise<void> {
+async function initializeAsync(
+  app: IReposApplication,
+  express,
+  rootdir: string,
+  config
+): Promise<void> {
   const providers = app.get('providers') as IProviders;
   providers.postgresPool = await ConnectPostgresPool(config.data.postgres);
-  providers.linkProvider = await createAndInitializeLinkProviderInstance(providers, config);
+  providers.linkProvider = await createAndInitializeLinkProviderInstance(
+    providers,
+    config
+  );
   if (config.github.cache.provider === 'cosmosdb') {
     const cosmosCache = new CosmosCache(config.github.cache.cosmosdb);
     await cosmosCache.initialize();
@@ -100,7 +129,10 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
     providers.cacheProvider = blobCache;
   } else if (config.github.cache.provider === 'redis') {
     const redisClient = await connectRedis(config, config.redis, 'cache');
-    const redisHelper = new RedisHelper({ redisClient, prefix: config.redis.prefix });
+    const redisHelper = new RedisHelper({
+      redisClient,
+      prefix: config.redis.prefix,
+    });
     // providers.redisClient = redisClient;
     providers.cacheProvider = redisHelper;
   } else {
@@ -110,7 +142,10 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
   providers.graphProvider = await createGraphProvider(providers, config);
   app.set('graphProvider', providers.graphProvider);
 
-  providers.mailAddressProvider = await createMailAddressProvider(config, providers);
+  providers.mailAddressProvider = await createMailAddressProvider(
+    config,
+    providers
+  );
   app.set('mailAddressProvider', providers.mailAddressProvider);
 
   const mailProvider = createMailProviderInstance(config);
@@ -136,18 +171,32 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
       pool: providers.postgresPool,
     },
   };
-  let tableProviderEnabled = emOptions.tableOptions && emOptions.tableOptions.account && emOptions.tableOptions.key;
-  let postgresProviderEnabled = emOptions.postgresOptions && emOptions.postgresOptions.pool;
-  const tableEntityMetadataProvider = tableProviderEnabled ? await createAndInitializeEntityMetadataProviderInstance(
-    emOptions,
-    'table') : null;
-  const pgEntityMetadataProvider = postgresProviderEnabled ? await createAndInitializeEntityMetadataProviderInstance(
-    emOptions,
-    'postgres') : null;
+  let tableProviderEnabled =
+    emOptions.tableOptions &&
+    emOptions.tableOptions.account &&
+    emOptions.tableOptions.key;
+  let postgresProviderEnabled =
+    emOptions.postgresOptions && emOptions.postgresOptions.pool;
+  const tableEntityMetadataProvider = tableProviderEnabled
+    ? await createAndInitializeEntityMetadataProviderInstance(
+        emOptions,
+        'table'
+      )
+    : null;
+  const pgEntityMetadataProvider = postgresProviderEnabled
+    ? await createAndInitializeEntityMetadataProviderInstance(
+        emOptions,
+        'postgres'
+      )
+    : null;
   const memoryEntityMetadataProvider = await createAndInitializeEntityMetadataProviderInstance(
     emOptions,
-    'memory');
-  const defaultProvider = pgEntityMetadataProvider || tableEntityMetadataProvider || memoryEntityMetadataProvider;
+    'memory'
+  );
+  const defaultProvider =
+    pgEntityMetadataProvider ||
+    tableEntityMetadataProvider ||
+    memoryEntityMetadataProvider;
   function providerNameToInstance(value: string): IEntityMetadataProvider {
     switch (value) {
       case 'firstconfigured':
@@ -164,19 +213,89 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
   }
   providers['_temp:nameToInstance'] = providerNameToInstance;
   // providers.entityMetadata = await createAndInitializeEntityMetadataProviderInstance(app, config, providers);
-  providers.approvalProvider = await createAndInitializeApprovalProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.teamjoin) });
-  providers.repositoryMetadataProvider = await createAndInitializeRepositoryMetadataProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.repositorymetadata) });
-  providers.tokenProvider = await createTokenProvider({ entityMetadataProvider: providerNameToInstance(config.entityProviders.tokens) });
-  providers.localExtensionKeyProvider = await CreateLocalExtensionKeyProvider({ entityMetadataProvider: providerNameToInstance(config.entityProviders.localextensionkey) });
-  providers.organizationMemberCacheProvider = await CreateOrganizationMemberCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.organizationmembercache) });
-  providers.organizationSettingsProvider = await createAndInitializeOrganizationSettingProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.organizationsettings) });
-  providers.repositoryCacheProvider = await CreateRepositoryCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.repositorycache) });
-  providers.repositoryCollaboratorCacheProvider = await CreateRepositoryCollaboratorCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.repositorycollaboratorcache) });
-  providers.repositoryTeamCacheProvider = await CreateRepositoryTeamCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.repositoryteamcache) });
-  providers.teamCacheProvider = await CreateTeamCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.teamcache) });
-  providers.teamMemberCacheProvider = await CreateTeamMemberCacheProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.teammembercache) });
-  providers.auditLogRecordProvider = await createAndInitializeAuditLogRecordProviderInstance({ entityMetadataProvider: providerNameToInstance(config.entityProviders.auditlogrecord) });
-  providers.userSettingsProvider = new UserSettingsProvider({ entityMetadataProvider: providerNameToInstance(config.entityProviders.usersettings) });
+  providers.approvalProvider = await createAndInitializeApprovalProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.teamjoin
+      ),
+    }
+  );
+  providers.repositoryMetadataProvider = await createAndInitializeRepositoryMetadataProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.repositorymetadata
+      ),
+    }
+  );
+  providers.tokenProvider = await createTokenProvider({
+    entityMetadataProvider: providerNameToInstance(
+      config.entityProviders.tokens
+    ),
+  });
+  providers.localExtensionKeyProvider = await CreateLocalExtensionKeyProvider({
+    entityMetadataProvider: providerNameToInstance(
+      config.entityProviders.localextensionkey
+    ),
+  });
+  providers.organizationMemberCacheProvider = await CreateOrganizationMemberCacheProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.organizationmembercache
+      ),
+    }
+  );
+  providers.organizationSettingsProvider = await createAndInitializeOrganizationSettingProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.organizationsettings
+      ),
+    }
+  );
+  providers.repositoryCacheProvider = await CreateRepositoryCacheProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.repositorycache
+      ),
+    }
+  );
+  providers.repositoryCollaboratorCacheProvider = await CreateRepositoryCollaboratorCacheProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.repositorycollaboratorcache
+      ),
+    }
+  );
+  providers.repositoryTeamCacheProvider = await CreateRepositoryTeamCacheProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.repositoryteamcache
+      ),
+    }
+  );
+  providers.teamCacheProvider = await CreateTeamCacheProviderInstance({
+    entityMetadataProvider: providerNameToInstance(
+      config.entityProviders.teamcache
+    ),
+  });
+  providers.teamMemberCacheProvider = await CreateTeamMemberCacheProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.teammembercache
+      ),
+    }
+  );
+  providers.auditLogRecordProvider = await createAndInitializeAuditLogRecordProviderInstance(
+    {
+      entityMetadataProvider: providerNameToInstance(
+        config.entityProviders.auditlogrecord
+      ),
+    }
+  );
+  providers.userSettingsProvider = new UserSettingsProvider({
+    entityMetadataProvider: providerNameToInstance(
+      config.entityProviders.usersettings
+    ),
+  });
   await providers.userSettingsProvider.initialize();
   providers.queryCache = new QueryCache(providers);
   if (config.campaigns && config.campaigns.provider === 'cosmosdb') {
@@ -187,7 +306,9 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
       collection: config.campaigns.cosmosdb.collection,
     });
     await campaignCosmosStore.initialize();
-    providers.campaignStateProvider = new StatefulCampaignProvider(campaignCosmosStore);
+    providers.campaignStateProvider = new StatefulCampaignProvider(
+      campaignCosmosStore
+    );
   }
   if (config.session.provider === 'cosmosdb') {
     const cosmosStore = new CosmosSessionStore({
@@ -200,7 +321,11 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
     await cosmosStore.initialize();
     providers.session = cosmosStore;
   } else if (config.session.provider === 'redis') {
-    const redisSessionClient = await connectRedis(config, config.session.redis, 'session');
+    const redisSessionClient = await connectRedis(
+      config,
+      config.session.redis,
+      'session'
+    );
     providers.sessionRedisClient = redisSessionClient;
   }
   if (config?.diagnostics?.blob?.key) {
@@ -212,7 +337,10 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
     await providers.diagnosticsDrop.initialize();
   }
 
-  providers.corporateContactProvider = createCorporateContactProviderInstance(config, providers.cacheProvider);
+  providers.corporateContactProvider = createCorporateContactProviderInstance(
+    config,
+    providers.cacheProvider
+  );
   providers.corporateAdministrationProfile = getCompanySpecificDeployment()?.administrationSection;
   providers.corporateViews = await initializeCorporateViews(providers, rootdir);
 
@@ -250,9 +378,19 @@ async function initializeAsync(app: IReposApplication, express, rootdir: string,
   }
 }
 
-function configureGitHubLibrary(cacheProvider: ICacheHelper, config): RestLibrary {
-  if (config && config.github && config.github.operations && !config.github.operations.centralOperationsToken) {
-    debug('WARNING: no central GitHub operations token is defined, some library operations may not succeed. ref: config.github.operations.centralOperationsToken var: GITHUB_CENTRAL_OPERATIONS_TOKEN');
+function configureGitHubLibrary(
+  cacheProvider: ICacheHelper,
+  config
+): RestLibrary {
+  if (
+    config &&
+    config.github &&
+    config.github.operations &&
+    !config.github.operations.centralOperationsToken
+  ) {
+    debug(
+      'WARNING: no central GitHub operations token is defined, some library operations may not succeed. ref: config.github.operations.centralOperationsToken var: GITHUB_CENTRAL_OPERATIONS_TOKEN'
+    );
   }
   const libraryContext = new RestLibrary({
     config,
@@ -262,16 +400,30 @@ function configureGitHubLibrary(cacheProvider: ICacheHelper, config): RestLibrar
 }
 
 // Asynchronous initialization for the Express app, configuration and data stores.
-export default async function initialize(app: IReposApplication, express, rootdir: string, config: any, exception: Error): Promise<IReposApplication> {
+export default async function initialize(
+  app: IReposApplication,
+  express,
+  rootdir: string,
+  config: any,
+  exception: Error
+): Promise<IReposApplication> {
   if (!config) {
     throw new Error('No configuration resolved');
   }
-  const applicationProfile = config?.web?.app && config.web.app !== 'repos' ? await alternateRoutes(config, app, config.web.app) : DefaultApplicationProfile;
+  const applicationProfile =
+    config?.web?.app && config.web.app !== 'repos'
+      ? await alternateRoutes(config, app, config.web.app)
+      : DefaultApplicationProfile;
   const web = !(config?.skipModules && config.skipModules.has('web'));
   if (applicationProfile.webServer && !web) {
     applicationProfile.webServer = false;
   }
-  const containerPurpose = config && config.isJobInternal ? 'Job' : (applicationProfile.webServer ? 'Web Application' : 'Application');
+  const containerPurpose =
+    config && config.isJobInternal
+      ? 'Job'
+      : applicationProfile.webServer
+      ? 'Web Application'
+      : 'Application';
   debug(`${containerPurpose} name: ${applicationProfile.applicationName}`);
   debug(`Environment: ${config?.debug?.environmentName || 'Unknown'}`);
   if (!exception && applicationProfile.validate) {
@@ -307,7 +459,9 @@ export default async function initialize(app: IReposApplication, express, rootdi
   providers.insights = appInsights(app, config);
   app.set('appInsightsClient', providers.insights);
   if (!exception && (!config || !config.activeDirectory)) {
-    exception = new Error(`config.activeDirectory.clientId and config.activeDirectory.clientSecret are required to initialize KeyVault`);
+    exception = new Error(
+      `config.activeDirectory.clientId and config.activeDirectory.clientSecret are required to initialize KeyVault`
+    );
   }
   app.use('*', (req, res, next) => {
     if (providers.healthCheck.ready) {
@@ -321,15 +475,23 @@ export default async function initialize(app: IReposApplication, express, rootdi
   } else if (config.containers && config.containers.docker) {
     debug('Docker image: HTTP: listening, HSTS: off');
   } else if (config.webServer.allowHttp) {
-    debug('WARNING: Development mode (DEBUG_ALLOW_HTTP): HTTP: listening, HSTS: off');
+    debug(
+      'WARNING: Development mode (DEBUG_ALLOW_HTTP): HTTP: listening, HSTS: off'
+    );
   } else {
     app.use(RouteSslify);
     app.use(RouteHsts);
   }
   if (!exception) {
     const kvConfig = {
-      clientId: config && config.activeDirectory ? config.activeDirectory.clientId : null,
-      clientSecret: config && config.activeDirectory ? config.activeDirectory.clientSecret : null,
+      clientId:
+        config && config.activeDirectory
+          ? config.activeDirectory.clientId
+          : null,
+      clientSecret:
+        config && config.activeDirectory
+          ? config.activeDirectory.clientSecret
+          : null,
     };
     providers.config = config;
     let keyEncryptionKeyResolver = null;
@@ -344,7 +506,7 @@ export default async function initialize(app: IReposApplication, express, rootdi
         debug('configuration resolved, no key vault client configured');
       } else {
         console.warn(noKeyVault);
-        throw noKeyVault;      
+        throw noKeyVault;
       }
     }
     try {
@@ -388,7 +550,10 @@ export default async function initialize(app: IReposApplication, express, rootdi
         },
       });
       try {
-        appInsightsClient.flush({ isAppCrashing: true, callback: crash(exception) });
+        appInsightsClient.flush({
+          isAppCrashing: true,
+          callback: crash(exception),
+        });
       } catch (sendError) {
         console.dir(sendError);
         crash(exception)();
@@ -401,26 +566,41 @@ export default async function initialize(app: IReposApplication, express, rootdi
   return app;
 }
 
-function createGraphProvider(providers: IProviders, config: any): Promise<IGraphProvider> {
+function createGraphProvider(
+  providers: IProviders,
+  config: any
+): Promise<IGraphProvider> {
   return new Promise((resolve, reject) => {
     // The graph provider is optional. A graph provider can connect to a
     // corporate directory to validate or lookup employees and other
     // directory members at runtime to gather additional information.
-    CreateGraphProviderInstance(providers, config, (providerInitError: Error, provider: IGraphProvider) => {
-      if (providerInitError) {
-        debug(`No org chart graph provider configured: ${providerInitError.message}`);
-        if (config.graph?.require === true) {
-          return reject(new Error(`Unable to initialize the graph provider: ${providerInitError.message}`));
+    CreateGraphProviderInstance(
+      providers,
+      config,
+      (providerInitError: Error, provider: IGraphProvider) => {
+        if (providerInitError) {
+          debug(
+            `No org chart graph provider configured: ${providerInitError.message}`
+          );
+          if (config.graph?.require === true) {
+            return reject(
+              new Error(
+                `Unable to initialize the graph provider: ${providerInitError.message}`
+              )
+            );
+          }
+        } else {
+          return resolve(provider);
         }
-      } else {
-        return resolve(provider);
+        return resolve(null);
       }
-      return resolve(null);
-    });
+    );
   });
 }
 
-export function ConnectPostgresPool(postgresConfigSection: any): Promise<PostgresPool> {
+export function ConnectPostgresPool(
+  postgresConfigSection: any
+): Promise<PostgresPool> {
   return new Promise((resolve, reject) => {
     try {
       if (postgresConfigSection && postgresConfigSection.user) {
@@ -431,32 +611,44 @@ export function ConnectPostgresPool(postgresConfigSection: any): Promise<Postgre
           pgDebug(err);
         });
         pool.on('connect', (client) => {
-          pgDebug(`Pool connecting a new client (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`);
+          pgDebug(
+            `Pool connecting a new client (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`
+          );
         });
-        pool.on('acquire', client => {
-          pgDebug(`Postgres client being checked out (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`);
+        pool.on('acquire', (client) => {
+          pgDebug(
+            `Postgres client being checked out (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`
+          );
         });
-        pool.on('remove', client => {
-          pgDebug(`Postgres client checked back in (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`);
+        pool.on('remove', (client) => {
+          pgDebug(
+            `Postgres client checked back in (pool: ${pool.totalCount} clients, ${pool.idleCount} idle, ${pool.waitingCount} waiting)`
+          );
         });
         // try connecting
         pool.connect((err, client, release) => {
           if (err) {
-            const poolError: InnerError = new Error(`There was a problem connecting to the Postgres server`);
+            const poolError: InnerError = new Error(
+              `There was a problem connecting to the Postgres server`
+            );
             poolError.inner = err;
             return reject(poolError);
           }
           client.query('SELECT NOW()', (err, result) => {
             release();
             if (err) {
-              const poolQueryError: InnerError = new Error('There was a problem performing a test query to the Postgres server');
+              const poolQueryError: InnerError = new Error(
+                'There was a problem performing a test query to the Postgres server'
+              );
               poolQueryError.inner = err;
               return reject(poolQueryError);
             }
-            debug(`connected to Postgres (${postgresConfigSection.host} ${postgresConfigSection.database} as ${postgresConfigSection.user}) and a pool of ${postgresConfigSection.max} clients is available in providers.postgresPool`);
+            debug(
+              `connected to Postgres (${postgresConfigSection.host} ${postgresConfigSection.database} as ${postgresConfigSection.user}) and a pool of ${postgresConfigSection.max} clients is available in providers.postgresPool`
+            );
             return resolve(pool);
-          })
-        })
+          });
+        });
       } else {
         return resolve(undefined);
       }
@@ -466,8 +658,13 @@ export function ConnectPostgresPool(postgresConfigSection: any): Promise<Postgre
   });
 }
 
-function connectRedis(config: any, redisConfig: any, purpose: string): Promise<redis.RedisClient> {
-  const nodeEnvironment = config && config.node ? config.node.environment : null;
+function connectRedis(
+  config: any,
+  redisConfig: any,
+  purpose: string
+): Promise<redis.RedisClient> {
+  const nodeEnvironment =
+    config && config.node ? config.node.environment : null;
   let redisClient: redis.RedisClient = null;
   const redisOptions: RedisOptions = {
     detect_buffers: true,
@@ -482,15 +679,23 @@ function connectRedis(config: any, redisConfig: any, purpose: string): Promise<r
   }
   if (!redisConfig.host && !redisConfig.tls) {
     if (nodeEnvironment === 'production') {
-      console.warn(`${purpose}: Redis host or TLS host must be provided in production environments`);
+      console.warn(
+        `${purpose}: Redis host or TLS host must be provided in production environments`
+      );
       throw new Error(`No ${purpose}.redis.host or ${purpose}.redis.tls`);
     }
     debug(`mocking Redis, in-memory provider in use`);
     redisClient = redisMock.createClient();
   } else {
-    debug(`connecting to ${purpose} Redis ${redisConfig.host || redisConfig.tls}`);
+    debug(
+      `connecting to ${purpose} Redis ${redisConfig.host || redisConfig.tls}`
+    );
     const port = redisConfig.port || (redisConfig.tls ? 6380 : 6379);
-    redisClient = redis.createClient(port, redisConfig.host || redisConfig.tls, redisOptions);
+    redisClient = redis.createClient(
+      port,
+      redisConfig.host || redisConfig.tls,
+      redisOptions
+    );
   }
   let isFirst = true;
   return new Promise((resolve, reject) => {
@@ -510,7 +715,10 @@ function connectRedis(config: any, redisConfig: any, purpose: string): Promise<r
   });
 }
 
-async function createMailAddressProvider(config: any, providers: IProviders): Promise<IMailAddressProvider> {
+async function createMailAddressProvider(
+  config: any,
+  providers: IProviders
+): Promise<IMailAddressProvider> {
   const options = {
     config: config,
     providers: providers,
@@ -518,20 +726,34 @@ async function createMailAddressProvider(config: any, providers: IProviders): Pr
   return createMailAddressProviderInstance(options);
 }
 
-async function dynamicStartup(config: any, providers: IProviders, rootdir: string) {
+async function dynamicStartup(
+  config: any,
+  providers: IProviders,
+  rootdir: string
+) {
   const p = config?.startup?.path;
   if (p) {
     try {
       const dynamicInclude = require(path.join(rootdir, p));
-      const entrypoint = dynamicInclude && dynamicInclude.default ? dynamicInclude.default : dynamicInclude;
-      if (typeof(entrypoint) !== 'function') {
+      const entrypoint =
+        dynamicInclude && dynamicInclude.default
+          ? dynamicInclude.default
+          : dynamicInclude;
+      if (typeof entrypoint !== 'function') {
         throw new Error(`Entrypoint ${p} is not a function`);
       }
-      const promise = (entrypoint as CompanyStartupEntrypoint).call(null, config, providers, rootdir) as Promise<void>;
+      const promise = (entrypoint as CompanyStartupEntrypoint).call(
+        null,
+        config,
+        providers,
+        rootdir
+      ) as Promise<void>;
       await promise;
       debug(`Company-specific startup complete (${p})`);
     } catch (dynamicLoadError) {
-      throw new Error(`config.startup.path=${p} could not successfully load: ${dynamicLoadError}`);
+      throw new Error(
+        `config.startup.path=${p} could not successfully load: ${dynamicLoadError}`
+      );
     }
   }
 }

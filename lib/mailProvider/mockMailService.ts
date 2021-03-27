@@ -14,21 +14,26 @@ export default class MockMailService implements IMailProvider {
   constructor(config) {
     this.customServiceConfig = config.mail.customService;
     if (this.customServiceConfig.version !== 'prototype') {
-      throw new Error(`The custom mail service version "${this.customServiceConfig.version}" is not supported`);
+      throw new Error(
+        `The custom mail service version "${this.customServiceConfig.version}" is not supported`
+      );
     }
     this.appVersion = config.logging.version;
   }
 
   async initialize() {}
-  
+
   get info(): string {
     return `mockMailService-${this.customServiceConfig.version} v${this.appVersion}`;
   }
 
   async sendMail(mail: IMail): Promise<any> {
-    const receipt = Object.assign({
-      id: uuidV4(),
-    }, mail);
+    const receipt = Object.assign(
+      {
+        id: uuidV4(),
+      },
+      mail
+    );
     this.sentMessages.push(receipt);
     return receipt.id;
   }

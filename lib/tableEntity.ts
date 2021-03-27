@@ -20,13 +20,13 @@ function reduceEntity(instance) {
 }
 
 function createEntity(partitionKey, rowKey, obj?, callback?) {
-  if (typeof (obj) === 'function') {
+  if (typeof obj === 'function') {
     callback = obj;
     obj = undefined;
   }
   var entity = {
     PartitionKey: entityGenerator.String(partitionKey),
-    RowKey: entityGenerator.String(rowKey)
+    RowKey: entityGenerator.String(rowKey),
   };
   if (obj) {
     mergeIntoEntity(entity, obj, null);
@@ -64,7 +64,12 @@ function mergeIntoEntity(entity, obj, callback?) {
         // Opinionated entity processing: store all numbers as strings
         entity[key] = entityGenerator.String(obj[key].toString());
       } else {
-        console.warn('Consider whether a new entity merge clause is required for key ' + key + ' of type:' + typeof obj[key]);
+        console.warn(
+          'Consider whether a new entity merge clause is required for key ' +
+            key +
+            ' of type:' +
+            typeof obj[key]
+        );
         if (obj[key].toString) {
           entity[key] = entityGenerator.String(obj[key].toString());
         } else {

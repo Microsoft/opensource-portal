@@ -8,7 +8,10 @@ import { ICorporateLink, Organization } from '../../business';
 import { IProviders } from '../../transitional';
 
 export class OrganizationSudoNoop extends OrganizationSudo {
-  constructor(protected providers: IProviders, protected organization: Organization) {
+  constructor(
+    protected providers: IProviders,
+    protected organization: Organization
+  ) {
     super(providers, organization);
   }
 

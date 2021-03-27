@@ -25,7 +25,9 @@ interface IExtendedProviders extends IProviders {
 export async function getStaticBlobCacheFallback(providers: IProviders) {
   const p = providers as IExtendedProviders;
   if (!p.staticBlobCacheFallback) {
-    p.staticBlobCacheFallback = new StaticBlobCacheFallback(providers.config?.client?.fallback?.blob);
+    p.staticBlobCacheFallback = new StaticBlobCacheFallback(
+      providers.config?.client?.fallback?.blob
+    );
     await p.staticBlobCacheFallback.initialize();
   }
   return p.staticBlobCacheFallback;
@@ -58,11 +60,13 @@ export default class StaticBlobCacheFallback {
     const sharedKeyCredential = new StorageSharedKeyCredential(account, key);
     this._client = new BlobServiceClient(
       `https://${account}.blob.core.windows.net`,
-      sharedKeyCredential,
+      sharedKeyCredential
     );
     try {
-      this._container = this._client.getContainerClient(this._options.container);
-      if (!await this._container.exists()) {
+      this._container = this._client.getContainerClient(
+        this._options.container
+      );
+      if (!(await this._container.exists())) {
         await this._client.createContainer(this._options.container);
       }
     } catch (containerError) {
@@ -91,7 +95,9 @@ export default class StaticBlobCacheFallback {
 
   private throwIfNotInitialized() {
     if (!this._initialized) {
-      throw new Error('This provider must be initialized before it can be used');
+      throw new Error(
+        'This provider must be initialized before it can be used'
+      );
     }
   }
 }

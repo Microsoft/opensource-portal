@@ -6,7 +6,10 @@
 import { TableLinkProvider } from './tableLinkProvider';
 
 export default function createTableProvider(providers, config) {
-  let tableOptions = config && config.github && config.github.links ? config.github.links.table : null;
+  let tableOptions =
+    config && config.github && config.github.links
+      ? config.github.links.table
+      : null;
   if (!tableOptions) {
     throw new Error('TableLinkProvider requires config.github.links.table');
   }
