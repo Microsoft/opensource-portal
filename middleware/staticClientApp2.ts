@@ -7,8 +7,6 @@ import { hasStaticReactClientApp } from '../transitional';
 
 import appPackage from '../package.json';
 
-/*eslint no-console: ["error", { allow: ["log", "error", "warn", "dir"] }] */
-
 const packageVariableName = 'static-react-package-name';
 const otherPackageVariableName = 'static-client-package-name';
 

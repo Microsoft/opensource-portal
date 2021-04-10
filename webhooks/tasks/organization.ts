@@ -5,8 +5,6 @@
 
 // ORGANIZATION membership and ownership
 
-/*eslint no-console: ["error", { allow: ["dir", "log"] }] */
-
 import { Operations } from '../../business';
 import { Organization } from '../../business';
 import { OrganizationMembershipRole, IProviders, NoCacheNoBackground, OrganizationMembershipState } from '../../interfaces';

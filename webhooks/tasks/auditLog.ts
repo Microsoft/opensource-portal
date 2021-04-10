@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["dir", "log"] }] */
-
 // AUDIT LOG: this capability is offline since the original data store was not ideal.
 // This should be rewritten to use the entity concept, and integrate with the newer
 // GitHub Enterprise Cloud capability of using GraphQL to hit the official audit log

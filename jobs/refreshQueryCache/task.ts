@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "dir", "log"] }] */
-
 import throat from 'throat';
 import { shuffle } from 'lodash';
 
@@ -493,7 +491,7 @@ export default async function refresh({ providers, args }: IReposJob) : Promise<
       allUpStats['update'] += orgResult.consistencyStats['update'];
       allUpStats['new'] += orgResult.consistencyStats['new'];
       insights.trackEvent({ name: 'QueryCacheOrganizationConsistencyResults', properties: resultsAsLog as any as { [key: string]: string } });
-  
+
       console.log('--------------------------------------------------');
       console.log(`${organization.name} processed - eventual consistency`)
       console.log(`${++processedOrgs} organizations visited in this group`);

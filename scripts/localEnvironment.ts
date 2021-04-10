@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "log", "dir"] }] */
-
 // The local environment script is designed to allow for local debugging, test and
 // development scenarios. The go method is called with resolved configuration.
 

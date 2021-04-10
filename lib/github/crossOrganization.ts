@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn"] }] */
-
 import { IRestResponse, IIntelligentCacheResponseArray, flattenData } from './core';
 import { CompositeApiContext } from './composite';
 import { RestLibrary } from '.';

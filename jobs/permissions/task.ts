@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "dir", "log"] }] */
-
 import { shuffle } from 'lodash';
 
 import { TeamPermission } from '../../business/teamPermission';
@@ -19,7 +17,7 @@ import { ErrorHelper } from '../../transitional';
 // regularly but is not looking to answer "the truth" - it will use the cache of repos and other
 // assets to not abuse GitHub and its API exhaustively. Over time repos will converge to having
 // the right permissions.
-// 
+//
 // If a repository is "compliance locked", the system teams are not enforced until the lock is removed.
 
 const maxParallelism = 1;

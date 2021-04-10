@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "dir", "log"] }] */
-
 // A simple job to cache the last-known manager e-mail address for linked users
 // in Redis, using this app's abstracted APIs to be slightly more generic.
 

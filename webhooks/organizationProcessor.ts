@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "log", "dir"] }] */
-
 import _ from 'lodash';
 import crypto from 'crypto';
 import secureCompare from 'secure-compare';
@@ -140,13 +138,13 @@ export default async function ProcessOrganizationWebhook(options: IProcessOrgani
               const difference = resetDate.getTime() - now.getTime();
               console.log(`[rate limit sleep] This thread will sleep for the remainder of this limit, ${difference}ms, until ${resetDate}`);
               await sleep(difference);
-              console.log('[resuming from rate limit sleep]');             
+              console.log('[resuming from rate limit sleep]');
             }
-          }  
+          }
         }
       } else {
         console.log('Processor ran into an error with an event:');
-        console.dir(processInitializationError);  
+        console.dir(processInitializationError);
       }
     }
   }

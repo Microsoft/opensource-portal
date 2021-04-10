@@ -5,8 +5,6 @@
 
 import { ICorporateLink } from '../interfaces';
 
-/*eslint no-console: ["error", { allow: ["warn"] }] */
-
 export const CorporatePropertyNames = [
   'isServiceAccount',
   'serviceAccountMail',

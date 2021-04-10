@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "dir", "log"] }] */
-
 import app from '../../app';
 
 import throat from 'throat';

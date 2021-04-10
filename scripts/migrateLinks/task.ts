@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn", "dir", "log"] }] */
-
 // This is a transition migration job that takes the former link source of truth -
 // table links - and copies those links into the configured provider if it is different.
 

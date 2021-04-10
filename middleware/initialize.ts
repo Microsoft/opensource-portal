@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["log", "error", "warn", "dir"] }] */
-
 import path from 'path';
 
 import CosmosSessionStore from '../lib/cosmosSession';
@@ -344,7 +342,7 @@ export default async function initialize(app: IReposApplication, express, rootdi
         debug('configuration resolved, no key vault client configured');
       } else {
         console.warn(noKeyVault);
-        throw noKeyVault;      
+        throw noKeyVault;
       }
     }
     try {

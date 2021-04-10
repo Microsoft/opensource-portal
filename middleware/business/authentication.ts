@@ -3,8 +3,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-/*eslint no-console: ["error", { allow: ["warn"] }] */
-
 import _ from 'lodash';
 import { ReposAppRequest, IAppSession } from '../../interfaces';
 const debug = require('debug')('user');
@@ -36,7 +34,7 @@ export async function requireAccessTokenClient(req: ReposAppRequest, res, next) 
   }
   // Build an OAuth Access Token instance for the request, refreshing as needed
   const { oauthToken } = req.user.azure;
-  if (authorizationCodeClient && oauthToken) {     
+  if (authorizationCodeClient && oauthToken) {
     const hydratedToken = JSON.parse(oauthToken);
     let oauthTokenInstance = authorizationCodeClient.createToken(hydratedToken);
     if (oauthTokenInstance.expired()) {
