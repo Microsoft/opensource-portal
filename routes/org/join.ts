@@ -5,9 +5,9 @@
 
 // the changes in Further-UI-Improvements did not merge well, need to review by hand
 
-import express from 'express';
+import { Router, Response, NextFunction } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import querystring from 'querystring';
 
@@ -33,7 +33,7 @@ router.use(function (req: ReposAppRequest, res, next) {
 
 router.use(RequireActiveGitHubSession);
 
-function clearAuditListAndRedirect(res: express.Response, organization: Organization, onboarding: boolean, req: any, state: OrganizationMembershipState) {
+function clearAuditListAndRedirect(res: Response, organization: Organization, onboarding: boolean, req: any, state: OrganizationMembershipState) {
   // Behavior change, only important to those not using GitHub's 2FA enforcement feature; no longer clearing the cache
   const url = organization.baseUrl + 'security-check' + (onboarding ? '?onboarding=' + onboarding : '?joining=' + organization.name);
   if (state === OrganizationMembershipState.Active && req) {
@@ -50,7 +50,7 @@ function queryParamAsBoolean(input: string): boolean {
   }
 }
 
-router.get('/', asyncHandler(async function (req: ReposAppRequest, res: express.Response, next: express.NextFunction) {
+router.get('/', asyncHandler(async function (req: ReposAppRequest, res: Response, next: NextFunction) {
   const providers = getProviders(req);
   const { operations } = providers;
   const organization = req.organization;
@@ -127,7 +127,7 @@ async function addMemberToOrganizationCache(queryCache: QueryCache, organization
   }
 }
 
-router.get('/express', asyncHandler(async function (req: ReposAppRequest, res: express.Response, next: express.NextFunction) {
+router.get('/express', asyncHandler(async function (req: ReposAppRequest, res: Response, next: NextFunction) {
   const providers = getProviders(req);
   const organization = req.organization;
   const onboarding = queryParamAsBoolean(req.query.onboarding as string);
@@ -149,7 +149,7 @@ router.get('/express', asyncHandler(async function (req: ReposAppRequest, res: e
   }
 }));
 
-async function joinOrg(req: ReposAppRequest, res: express.Response, next: express.NextFunction) {
+async function joinOrg(req: ReposAppRequest, res: Response, next: NextFunction) {
   const individualContext = req.individualContext as IndividualContext;
   const organization = req.organization as Organization;
   const onboarding = queryParamAsBoolean(req.query.onboarding as string);
@@ -199,7 +199,7 @@ async function joinOrganization(req, individualContext: IndividualContext, organ
 router.post('/', joinOrg);
 
 // /orgname/join/byClient
-router.post('/byClient', asyncHandler(async (req: ReposAppRequest, res: express.Response, next: express.NextFunction) => {
+router.post('/byClient', asyncHandler(async (req: ReposAppRequest, res: Response, next: NextFunction) => {
   const { queryCache, insights } = getProviders(req);
   const individualContext = req.individualContext as IndividualContext;
   const organization = req.organization as Organization;

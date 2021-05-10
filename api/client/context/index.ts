@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { Organization } from '../../../business';
@@ -20,7 +20,7 @@ import RouteOrgs from './orgs';
 import RouteRepos from './repos';
 import RouteTeams from './teams';
 
-const router = express.Router();
+const router: Router = Router();
 
 const deployment = getCompanySpecificDeployment();
 deployment?.routes?.api?.context?.index && deployment?.routes?.api?.context?.index(router);

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { IndividualContext } from '../../user';
@@ -13,7 +13,7 @@ import { unlinkInteractive } from '../../routes/unlink';
 import { interactiveLinkUser } from '../../routes/link';
 import { ReposAppRequest } from '../../interfaces';
 
-const router = express.Router();
+const router: Router = Router();
 
 async function validateLinkOk(req: ReposAppRequest, res, next) {
   const activeContext = (req.individualContext || req.apiContext) as IndividualContext;

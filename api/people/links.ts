@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { jsonError } from '../../middleware';
@@ -14,7 +14,7 @@ import postLinkApi from './link';
 import { ErrorHelper, getProviders } from '../../transitional';
 import { wrapError } from '../../utils';
 
-const router = express.Router();
+const router: Router = Router();
 
 const unsupportedApiVersions = [
   '2016-12-01',

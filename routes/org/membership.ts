@@ -3,13 +3,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { ReposAppRequest, UserAlertType } from '../../interfaces';
 import { wrapError } from '../../utils';
 import RequireActiveGitHubSession from '../../middleware/github/requireActiveSession';
-const router = express.Router();
+const router: Router = Router();
 
 router.get('/', RequireActiveGitHubSession, asyncHandler(async function (req: ReposAppRequest, res, next) {
   const organization = req.organization;

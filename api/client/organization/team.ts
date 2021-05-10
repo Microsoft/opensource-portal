@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { getContextualTeam } from '../../../middleware/github/teamPermissions';
@@ -17,7 +17,7 @@ import { equivalentLegacyPeopleSearch } from './people';
 import { TeamRepositoryPermission, OrganizationMember, corporateLinkToJson } from '../../../business';
 import { ReposAppRequest, TeamJsonFormat, NoCacheNoBackground, ICorporateLink } from '../../../interfaces';
 
-const router = express.Router();
+const router: Router = Router();
 
 router.get('/', asyncHandler(async (req: ReposAppRequest, res, next) => {
   const team = getContextualTeam(req);

@@ -3,13 +3,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { jsonError } from '../../../middleware/jsonError';
 import { ReposAppRequest } from '../../../interfaces';
 
-const router = express.Router();
+const router: Router = Router();
 
 router.get('/', asyncHandler(async (req: ReposAppRequest, res, next) => {
   const { organization } = req;
@@ -21,7 +21,7 @@ router.get('/byProjectReleaseType', asyncHandler(async (req: ReposAppRequest, re
   const { organization } = req;
   const options = {
     projectType: req.query.projectType,
-  };  
+  };
   const metadata = organization.getRepositoryCreateMetadata(options);
   res.json(metadata);
 }));

@@ -3,8 +3,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
-const router = express.Router();
+import { Router } from 'express';
+const router: Router = Router();
 import asyncHandler from 'express-async-handler';
 
 import { ReposAppRequest } from '../../interfaces';

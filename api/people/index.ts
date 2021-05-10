@@ -3,11 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 
 import { json404 } from '../../middleware/jsonError';
 
-const router = express.Router();
+const router: Router = Router();
 
 import LinksRoute from './links';
 import UnlinkRoute from './unlink';

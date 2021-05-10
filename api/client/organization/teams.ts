@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { Organization } from '../../../business/organization';
@@ -16,7 +16,7 @@ import LeakyLocalCache from '../leakyLocalCache';
 import RouteTeam from './team';
 import { Team } from '../../../business';
 
-const router = express.Router();
+const router: Router = Router();
 
 // BAD PRACTICE: leaky local cache
 // CONSIDER: use a better approach

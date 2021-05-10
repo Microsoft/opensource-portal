@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { TeamJoinApprovalEntity } from '../../../../entities/teamJoinApproval/teamJoinApproval';
@@ -16,7 +16,7 @@ import { PermissionWorkflowEngine } from '../../../../routes/org/team/approvals'
 import { getProviders } from '../../../../transitional';
 import { IndividualContext } from '../../../../user';
 
-const router = express.Router();
+const router: Router = Router();
 
 interface ITeamRequestJsonResponse {
   request?: TeamJoinApprovalEntity;
@@ -27,7 +27,7 @@ interface ITeamApprovalsJsonResponse {
   approvals?: TeamJoinApprovalEntity[];
 }
 
-router.get('/permissions', 
+router.get('/permissions',
   asyncHandler(AddTeamPermissionsToRequest),
   asyncHandler(AddTeamMembershipToRequest),
   asyncHandler(async (req: ReposAppRequest, res, next) => {
@@ -74,7 +74,7 @@ router.post('/join',
       if (request) {
         return res.json({ error: 'You already have a pending team join request' });
       }
-      // 
+      //
       const justification = (req.body.justification || '') as string;
       const hostname = req.hostname;
       const correlationId = req.correlationId;
@@ -156,7 +156,7 @@ router.get('/join/approvals/:approvalId',
   return res.json({ approval: request });
 }));
 
-router.get('/join/approvals', 
+router.get('/join/approvals',
   asyncHandler(AddTeamPermissionsToRequest),
   asyncHandler(async (req: ReposAppRequest, res, next) => {
     const { approvalProvider } = getProviders(req);

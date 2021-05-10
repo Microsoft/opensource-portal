@@ -4,8 +4,8 @@
 //
 
 import asyncHandler from 'express-async-handler';
-import express from 'express';
-const router = express.Router();
+import { Router } from 'express';
+const router: Router = Router();
 
 import _ from 'lodash';
 

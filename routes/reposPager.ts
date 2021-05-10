@@ -4,7 +4,7 @@
 //
 
 import asyncHandler from 'express-async-handler';
-import express from 'express';
+import { Response, NextFunction } from 'express';
 import _ from 'lodash';
 
 import { daysInMilliseconds } from '../utils';
@@ -60,7 +60,7 @@ async function getReposAndOptionalTeamPermissions(organizationId: number, operat
   return { reposData, userRepos };
 }
 
-export default asyncHandler(async function (req: IReposAppWithTeam, res: express.Response, next: express.NextFunction) {
+export default asyncHandler(async function (req: IReposAppWithTeam, res: Response, next: NextFunction) {
   const providers = getProviders(req);
   const operations = providers.operations;
   const queryCache = providers.queryCache;

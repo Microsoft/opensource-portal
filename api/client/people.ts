@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { corporateLinkToJson } from '../../business';
@@ -15,7 +15,7 @@ import getCompanySpecificDeployment from '../../middleware/companySpecificDeploy
 import RouteGetPerson from './person';
 import { equivalentLegacyPeopleSearch } from './peopleSearch';
 
-const router = express.Router();
+const router: Router = Router();
 
 const deployment = getCompanySpecificDeployment();
 deployment?.routes?.api?.people && deployment.routes.api.people(router);

@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import _ from 'lodash';
 
@@ -240,7 +240,7 @@ export async function createRepositoryFromClient(req: ILocalApiRequest, res, nex
   translateValue(body, 'legalEntity', 'ms.entity');
   translateValue(body, 'projectType', 'ms.project-type');
   // Team permissions
-  let sufficientTeamsOk = false;  
+  let sufficientTeamsOk = false;
   if (customizedNewRepositoryLogic?.sufficientTeamsConfigured) {
     sufficientTeamsOk = customizedNewRepositoryLogic.sufficientTeamsConfigured(customContext, body);
   }
@@ -274,7 +274,7 @@ export async function createRepositoryFromClient(req: ILocalApiRequest, res, nex
       }
     } catch (graphError) {
       insights?.trackException({ exception: graphError });
-      console.warn(`Retrieving user mail address error: ${graphError}`);  
+      console.warn(`Retrieving user mail address error: ${graphError}`);
     }
   }
   if (!body['ms.notify']) {

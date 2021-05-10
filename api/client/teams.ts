@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { Operations, Team } from '../../business';
@@ -12,7 +12,7 @@ import { jsonError } from '../../middleware';
 import { getProviders } from '../../transitional';
 import JsonPager from './jsonPager';
 
-const router = express.Router();
+const router: Router = Router();
 
 async function getCrossOrganizationTeams(operations: Operations): Promise<Team[]> {
   const options = {

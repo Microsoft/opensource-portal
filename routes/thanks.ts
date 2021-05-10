@@ -7,8 +7,8 @@ import { ReposAppRequest } from '../interfaces';
 import thisPackage = require('../package.json');
 import { getProviders } from '../transitional';
 
-var express = require('express');
-var router = express.Router();
+import { Router } from 'express';
+const router: Router = Router();
 
 var cachedPackageInformation = null;
 

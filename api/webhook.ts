@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import moment from 'moment';
@@ -14,7 +14,7 @@ import { getProviders } from '../transitional';
 
 import OrganizationWebhookProcessor from '../webhooks/organizationProcessor';
 
-const router = express.Router();
+const router: Router = Router();
 
 interface IRequestWithRaw extends ReposAppRequest {
   _raw?: any;

@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import { getProviders, validateGitHubLogin } from '../../../transitional';
 import { ReposAppRequest, RequestTeamMemberAddType, NoCacheNoBackground, UserAlertType } from '../../../interfaces';

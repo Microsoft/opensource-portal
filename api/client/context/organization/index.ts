@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 import { Organization, Team } from '../../../../business';
 import { ReposAppRequest, OrganizationMembershipRole, TeamJsonFormat, GitHubTeamRole } from '../../../../interfaces';
@@ -14,7 +14,7 @@ import { IndividualContext } from '../../../../user';
 import RouteRepos from './repos';
 import RouteTeams from './teams';
 
-const router = express.Router();
+const router: Router = Router();
 
 router.get('/', asyncHandler(async (req: ReposAppRequest, res, next) => {
   const { organization } = req;
@@ -78,7 +78,7 @@ router.delete('/', asyncHandler(async (req: ReposAppRequest, res, next) => {
       message: `Your ${login} account has been removed from ${organization.name}.`,
     });
   } catch (error) {
-    console.warn(error);    
+    console.warn(error);
     return next(jsonError(error, 400));
   }
 }));

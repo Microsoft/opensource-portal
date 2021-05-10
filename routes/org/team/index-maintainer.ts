@@ -3,11 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 
 import { ReposAppRequest } from '../../../interfaces';
 import { wrapError } from '../../../utils';
-const router = express.Router();
+const router: Router = Router();
 
 import RouteApprovals from './approvals';
 import RouteMembers from './members';

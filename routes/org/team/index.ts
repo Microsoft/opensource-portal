@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import throat from 'throat';
 
@@ -189,10 +189,10 @@ router.post('/join', asyncHandler(async (req: ILocalRequest, res, next) => {
 }));
 
 export async function submitTeamJoinRequest(
-  providers: IProviders, 
-  activeContext: IndividualContext, 
-  team: Team, 
-  optionalJustification: string, 
+  providers: IProviders,
+  activeContext: IndividualContext,
+  team: Team,
+  optionalJustification: string,
   correlationId: string,
   hostname: string
   ): Promise<ITeamJoinRequestSubmitOutcome> {

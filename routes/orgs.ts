@@ -5,9 +5,9 @@
 
 import querystring from 'querystring';
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import { IReposRequestWithOrganization } from '../interfaces';
 import { injectReactClient, TryFallbackToBlob } from '../middleware';

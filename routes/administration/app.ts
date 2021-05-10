@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import { getProviders } from '../../transitional';
 import { OrganizationSetting, IBasicGitHubAppInstallation, SpecialTeam } from '../../entities/organizationSettings/organizationSetting';
@@ -172,7 +172,7 @@ router.post('/:appId/installations/:installationId', asyncHandler(async function
   const organizationName = installation.account.login;
   const organizationSettingsProvider = providers.organizationSettingsProvider;
 
-  
+
   if (hasElevationButtonClicked) {
     // Only available for pre-adoption
     const [, unconfiguredOrganization] = await getDynamicSettingsFromLegacySettings(providers.operations, staticSettings, installation, individualContext);

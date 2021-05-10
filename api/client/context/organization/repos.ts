@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 import { Repository } from '../../../../business';
 import { jsonError } from '../../../../middleware';
@@ -15,7 +15,7 @@ import { createRepositoryFromClient } from '../../newOrgRepo';
 
 import RouteContextualRepo from './repo';
 
-const router = express.Router();
+const router: Router = Router();
 
 async function validateActiveMembership(req: ReposAppRequest, res, next) {
   const { organization } = req;

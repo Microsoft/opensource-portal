@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { jsonError } from '../../../middleware';
@@ -22,7 +22,7 @@ type RequestWithRepo = ReposAppRequest & {
   repository: Repository;
 };
 
-const router = express.Router();
+const router: Router = Router();
 
 const deployment = getCompanySpecificDeployment();
 deployment?.routes?.api?.organization?.repo && deployment?.routes?.api?.organization?.repo(router);

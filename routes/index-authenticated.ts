@@ -7,9 +7,9 @@
 
 import _ from 'lodash';
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import { hasStaticReactClientApp, getProviders } from '../transitional';
 

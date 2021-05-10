@@ -5,9 +5,9 @@
 
 /*eslint no-console: ["error", { allow: ["warn"] }] */
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import { ReposAppRequest, IAppSession, SupportedLinkType, ICorporateLink, LinkOperationSource } from '../interfaces';
 import { getProviders } from '../transitional';

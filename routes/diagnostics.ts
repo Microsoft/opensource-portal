@@ -3,15 +3,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
-const router = express.Router();
+import { Router, Request } from 'express';
+const router: Router = Router();
 
 import { IAppSession, ReposAppRequest } from '../interfaces';
 import { getProviders } from '../transitional';
 
 const redacted = '*****';
 
-interface IRequestWithSession extends express.Request {
+interface IRequestWithSession extends Request {
   app: any;
   session: IAppSession;
   user: any;

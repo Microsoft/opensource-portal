@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 
@@ -52,7 +52,7 @@ type CacheBuffer = {
 }
 const localFallbackBlobCache = new Map<string, CacheBuffer>();
 
-export async function TryFallbackToBlob(req: ReposAppRequest, res: express.Response): Promise<boolean> {
+export async function TryFallbackToBlob(req: ReposAppRequest, res: Response): Promise<boolean> {
   if (!req.path) {
     return false;
   }

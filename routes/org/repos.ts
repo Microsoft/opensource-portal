@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
-const router = express.Router();
+const router: Router = Router();
 
 import _ from 'lodash';
 import moment from 'moment';
@@ -386,7 +386,7 @@ export interface IRepositoryPermissionsView {
 
 export async function calculateGroupedPermissionsViewForRepository(repository: Repository): Promise<any> {
   const organization = repository.organization;
-  const { 
+  const {
     permissions, // TeamPermission[]
     collaborators, // Collaborator[]
     outsideCollaborators, // Collaborator[]

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 import { Team } from '../../../../business';
 import { jsonError } from '../../../../middleware';
@@ -12,7 +12,7 @@ import { ReposAppRequest } from '../../../../interfaces';
 
 import RouteTeam from './team';
 
-const router = express.Router();
+const router: Router = Router();
 
 // CONSIDER: list their teams router.get('/ ')
 

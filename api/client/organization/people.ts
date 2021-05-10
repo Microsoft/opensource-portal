@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { jsonError } from '../../../middleware';
@@ -13,7 +13,7 @@ import JsonPager from '../jsonPager';
 import { OrganizationMember, TeamMember, Operations, Team, Organization, MemberSearch, corporateLinkToJson } from '../../../business';
 import { NoCacheNoBackground, ReposAppRequest } from '../../../interfaces';
 
-const router = express.Router();
+const router: Router = Router();
 
 // BAD PRACTICE: leaky local cache
 // CONSIDER: use a better approach

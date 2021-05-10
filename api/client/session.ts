@@ -3,12 +3,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Router } from 'express';
 
 import { jsonError } from '../../middleware/jsonError';
 import { IAppSession, ReposAppRequest } from '../../interfaces';
 
-const router = express.Router();
+const router: Router = Router();
 
 // This route is /api/client/signout*
 

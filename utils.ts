@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-import express from 'express';
+import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { URL } from 'url';
@@ -139,7 +139,7 @@ export function sortByCaseInsensitive(a: string, b: string) {
 // ----------------------------------------------------------------------------
 // Session utility: store the original URL
 // ----------------------------------------------------------------------------
-export function storeOriginalUrlAsReferrer(req: express.Request, res: express.Response, redirect: string, optionalReason?: string) {
+export function storeOriginalUrlAsReferrer(req: Request, res: Response, redirect: string, optionalReason?: string) {
   storeOriginalUrlAsVariable(req, res, 'referer', redirect, optionalReason);
 };
 
